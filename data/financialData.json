@@ -51,6 +51,7 @@
         "options": [
             {
                 "optionId": 1,
+                "optionDesc":"opt1",
                 "years": {
                     "2026": {
                         "Deal": {
@@ -106,6 +107,7 @@
             },
             {
                 "optionId": 2,
+                "optionDesc":"opt2",
                 "years": {
                     "2026": {
                         "Deal": {

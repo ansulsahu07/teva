@@ -1,0 +1,17 @@
+[
+  {
+    "brand": "BrandA",
+    "period": 20251,
+    "wac": [99.99,99.99,99.99,87.09,23.98],
+    "effective_start_date": "2025-07-01",
+    "effective_end_date": "2025-09-30",
+    "modified_date": "2025-07-23",
+    "modified_by": "jdoe",
+    "created_date": "2025-07-01",
+    "created_by": "admin",
+    "row_id": 2,
+    "price_increase_assumptions": "4% semi-annual increase",
+    "product_id": "PROD001"
+  }
+]
+
