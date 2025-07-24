@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import financialData from '../../data/financialData.json'; // Your JSON file
 import { Container, Table, Spinner, Button } from 'react-bootstrap';
 import { DEAL_ROUTES } from '../constants/routes';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-export const FinancialTable = () => {
-
+export const FinancialTable = ({ optionId, dealId }) => {
+    console.log("FinancialTable", optionId, dealId);
+    if (!optionId || !dealId) return <div>No data</div>;
     const navigate = useNavigate();
-    const { dealId, optionId } = useParams();
+    // const { dealId, optionId } = useParams();
     const [tableData, setTableData] = useState({});
     const [selectedDeal, setSelectedDeal] = useState(null);
 
@@ -22,16 +23,39 @@ export const FinancialTable = () => {
         return num.toLocaleString('en-US');
     };
 
-    useEffect(() => {
-        const deal = financialData.find(d => d.dealId.toString() === dealId);
-        if (!deal) return;
+    // useEffect(() => {
+    //     const deal = financialData.find(d => d.dealId.toString() === dealId);
+    //     if (!deal) return;
+    //     console.log("dealId",dealId);
+    //     console.log("optionId",optionId);
 
-        const option = deal.options.find(opt => opt.optionId.toString() === optionId);
-        if (!option) return;
+    //     const option = deal.options[optionId];
+    //     console.log("option", option);
+
+    //     setSelectedDeal(deal);
+    //     setTableData(option.years);
+    // }, [optionId]);
+
+
+    useEffect(() => {
+        if (!optionId || !dealId) return;
+
+        const deal = financialData.find(d => d.dealId.toString() === dealId.toString());
+        if (!deal) {
+            console.error("No deal found for dealId:", dealId);
+            return;
+        }
+
+        const option = deal.options.find(o => o.optionDesc.toString() === optionId.toString());
+        if (!option) {
+            console.error("No option found for optionId:", optionId);
+            return;
+        }
 
         setSelectedDeal(deal);
         setTableData(option.years);
-    }, [dealId, optionId]);
+    }, [optionId, dealId]);
+
 
     if (!selectedDeal || !tableData || Object.keys(tableData).length === 0) {
         return (
@@ -93,7 +117,7 @@ export const FinancialTable = () => {
                 left: { style: 'thin' },
                 bottom: { style: 'thin' },
                 right: { style: 'thin' }
-              };
+            };
         });
 
         worksheet.getRow(2).eachCell((cell) => {
@@ -109,7 +133,7 @@ export const FinancialTable = () => {
                 left: { style: 'thin' },
                 bottom: { style: 'thin' },
                 right: { style: 'thin' }
-              };
+            };
         });
 
         // Add data rows
@@ -139,13 +163,13 @@ export const FinancialTable = () => {
 
             dataRow.eachCell((cell) => {
                 cell.border = {
-                  top: { style: 'thin' },
-                  left: { style: 'thin' },
-                  bottom: { style: 'thin' },
-                  right: { style: 'thin' }
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
                 };
-              });
-              
+            });
+
 
             // Format currency and apply conditional background
             row.forEach((val, i) => {
@@ -180,13 +204,12 @@ export const FinancialTable = () => {
     };
 
 
+    const handleOnSelectOption = (e) => {
+        setChooseOption(Number(e.target.value));
+    };
+
     return (
-        <div className="mt-4 text-center">
-            <h1 className="mb-5 text-teva-green">
-                Financial Result Table
-            </h1>
-
-
+        <>
             <Table
                 striped
                 bordered
@@ -263,28 +286,27 @@ export const FinancialTable = () => {
                     })}
                 </tbody>
             </Table>
+            <div className="d-flex justify-content-center mb-5">
+                <Button
+                    variant="success"
+                    className={`vi-btn-solid-magenta vi-btn-solid`}
+                    type="Button"
+                    size="sm"
+                    onClick={() => { navigate(DEAL_ROUTES.DEAL_ANALYSIS_MODEL.PATH) }}
+                >
+                    BACK
+                </Button>
 
-            <Button
-                variant="success"
-                className={`vi-btn-solid-magenta vi-btn-solid`}
-                type="Button"
-                size="sm"
-                onClick={() => { navigate(DEAL_ROUTES.FINANCIAL_DATA_FORM.PATH) }}
-            >
-                BACK
-            </Button>
-
-            <Button
-                variant="success"
-                className={`vi-btn-solid-magenta vi-btn-solid`}
-                type="Button"
-                size="sm"
-                onClick={exportTableToExcel}
-            >
-                EXPORT
-            </Button>
-
-
-        </div>
+                <Button
+                    variant="success"
+                    className={`vi-btn-solid-magenta vi-btn-solid`}
+                    type="Button"
+                    size="sm"
+                    onClick={exportTableToExcel}
+                >
+                    EXPORT
+                </Button>
+            </div>
+        </>
     );
 };
