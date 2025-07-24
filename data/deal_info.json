@@ -1,0 +1,11 @@
+{
+  "deals": [
+    {
+      "dealId": 123456,
+      "brands": ["AJOVY", "AUSTEDO", "CINQAIR", "COPAXONE 20", "COPAXONE 40"],
+      "accounts": ["OptumRx", "Aetna", "Alameda Alliance for Health", "Amber/HyVee Pharmacy Solutions", "Anthem BC/BS of MO"],
+      "channels": ["MPD", "Commercial", "Managed Medicaid", "Specialty", "Medical Commercial"]
+    }
+  ]
+}
+

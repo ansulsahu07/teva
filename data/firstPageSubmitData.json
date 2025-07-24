@@ -1,0 +1,11 @@
+{
+    "dealId": 123,
+    "dealDescription": "Deal Description",
+    "brand": "Ajovy",
+    "account": "OptumRx",
+    "channel": "MPD",
+    "contractTermStartDate": "13-7-2025",
+    "contractTermEndDate": "13-7-2028",
+    "contractLength": 3,
+    "lookBackPeriod": 2
+}

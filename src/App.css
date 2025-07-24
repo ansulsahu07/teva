@@ -1,0 +1,46 @@
+:root {
+  --teva-green: #00a03b;
+  --teva-dark-magenta: #aa198d;
+  --bg-table-input: #fbdd82;
+}
+
+.teva-logo {
+  width: 6.25rem;
+}
+
+.text-teva-green {
+  color: var(--teva-green);
+}
+
+.vi-btn-solid-magenta {
+  background-color: var(--teva-dark-magenta);
+}
+
+.vi-btn-solid {
+  border: 0;
+  border-radius: 999rem;
+  padding: 15px 30px;
+  margin: 5px;
+}
+
+.market-table {
+  font-size: 12px;
+}
+
+.deal-analysis-table {
+  tbody tr td:first-child {
+    text-align: right !important;
+  }
+}
+
+/* tr.user-input td {
+  padding: 0;
+
+  input {
+    background-color: var(--bg-table-input);
+    text-align: center;
+    border: 0;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+} */

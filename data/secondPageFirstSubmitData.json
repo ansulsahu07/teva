@@ -1,0 +1,16 @@
+{
+  "contractPhase": [
+    { "phase": "1Q2024", "growthAssumption": 1.35, "marketBasket": 12345 },
+    { "phase": "2Q2024", "growthAssumption": 1.35, "marketBasket": 12345 },
+    { "phase": "3Q2024", "growthAssumption": 1.35, "marketBasket": 12345 },
+    { "phase": "4Q2024", "growthAssumption": 1.35, "marketBasket": 12345 },
+    { "phase": "1Q2025", "growthAssumption": 1.35, "marketBasket": 12345 },
+    { "phase": "2Q2025", "growthAssumption": 1.35, "marketBasket": 12345 },
+    { "phase": "3Q2025", "growthAssumption": 1.35, "marketBasket": 12345 },
+    { "phase": "4Q2025", "growthAssumption": 1.35, "marketBasket": 12345 },
+    { "phase": "1Q2026", "growthAssumption": 1.35, "marketBasket": 12345 },
+    { "phase": "2Q2026", "growthAssumption": 1.35, "marketBasket": 12345 },
+    { "phase": "3Q2026", "growthAssumption": 1.35, "marketBasket": 12345 },
+    { "phase": "4Q2026", "growthAssumption": 1.35, "marketBasket": 12345 }
+  ]
+}
