@@ -1,16 +1,36 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Form, Table } from "react-bootstrap";
 // import { useNavigate } from "react-router-dom";
 import { MKT_BASKET_GROWTH_ASSUMPTIONS, MKT_BASKET } from "../constants/ui";
 // import { DEAL_ROUTES } from "../constants/routes";
+import useDealFormStore from "../store/useDealFormStore";
 
-const MarketBasketTable = ({ initialGrowthData, onBasketUpdate }) => {
-  const [growthData, setGrowthData] = useState(initialGrowthData || []);
+const MarketBasketTable = ({
+  initialGrowthData,
+  onBasketUpdate,
+  isFirstSubmit,
+  setIsFirstSubmit,
+  setTableCount,
+}) => {
+  const [growthData, setGrowthData] = useState([]);
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
-
   const [initialValue, setInitialValue] = useState("");
 
   // const navigate = useNavigate();
+
+  const { setMarketBasketRecords, syncOptionDataWithMarketBasket } = useDealFormStore();
+
+  useEffect(() => {
+    if (initialGrowthData && initialGrowthData.length > 0) {
+      setGrowthData(initialGrowthData);
+
+      const firstBasket = initialGrowthData[0]?.marketBasket;
+      if (firstBasket && !isNaN(firstBasket)) {
+        setInitialValue(firstBasket);
+        setIsSubmitDisabled(false);
+      }
+    }
+  }, [initialGrowthData]);
 
   const calculateMarketBasket = () => {
     const firstValue = parseFloat(initialValue);
@@ -30,14 +50,23 @@ const MarketBasketTable = ({ initialGrowthData, onBasketUpdate }) => {
     });
 
     setGrowthData(updatedRecords);
+    setMarketBasketRecords(updatedRecords); // updates marketBasketRecords in store
+    syncOptionDataWithMarketBasket(); // ✅ resync all existing options
     setIsSubmitDisabled(false);
   };
 
   const submitMarketBasketData = () => {
-    onBasketUpdate(growthData);
+    onBasketUpdate(growthData); // updates masterMarketData in store
+    updateMarketData(growthData); // updates options in store
+    syncOptionDataWithMarketBasket(); // ✅ resync all existing options
+
+    if (!isFirstSubmit) {
+      setIsFirstSubmit(true);
+      setTableCount((prev) => prev + 2);
+    }
   };
 
-  // console.log("MarketBasketTable growthData", growthData);
+  console.log("MarketBasketTable growthData", growthData);
 
   if (!growthData || growthData.length === 0) {
     return <p>No Data available</p>;
@@ -75,7 +104,14 @@ const MarketBasketTable = ({ initialGrowthData, onBasketUpdate }) => {
                   <Form.Control
                     type="number"
                     value={initialValue}
-                    onChange={(e) => setInitialValue(e.target.value)}
+                    min="1"
+                    onPaste={() => handlePasteEvent(1)}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (value >= 1) {
+                        setInitialValue(value);
+                      }
+                    }}
                   />
                 </td>
               ) : (
@@ -103,6 +139,12 @@ const MarketBasketTable = ({ initialGrowthData, onBasketUpdate }) => {
         </tbody>
       </Table>
       <div>
+        {/* <Button
+          className="vi-btn-solid-magenta vi-btn-solid"
+          onClick={() => navigate(DEAL_ROUTES.HOME.PATH)}
+        >
+          BACK
+        </Button> */}
         <Button
           disabled={isSubmitDisabled}
           className="vi-btn-solid-magenta vi-btn-solid"

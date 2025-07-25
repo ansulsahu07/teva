@@ -3,24 +3,27 @@ import { Form, Table } from "react-bootstrap";
 import { MKT_BASKET } from "../constants/ui";
 import useDealFormStore from "../store/useDealFormStore";
 
-const MarketOptionTable = ({ optId, optionData, indexId, isNoDeal = 0 }) => {
-  const { updateOptionData, updateOptionGroup } = useDealFormStore();
+const MarketOptionTable = ({ optId, optionData, indexId, isNoDeal, onDataEdit }) => {
+  const { updateOptionData } = useDealFormStore();
 
-  // const initialData = [...optionData];
-  const initialData = optionData.map((item) => ({
-    ...item,
-    marketTrx: 0,
-    marketShare: ''
-  }));
+  // const initialData = optionData.map((item) => ({
+  //   ...item,
+  //   marketTrx: 0,
+  //   marketShare: "",
+  // }));
 
-  // console.log('MarketOptionTable optionData', optionData)
+  // const [initialOptionData, setInitialOptionData] = useState(initialData);
 
-  const [initialOptionData, setInitialOptionData] = useState(initialData);
+  const optionFromStore = useDealFormStore(
+    (state) => state.options.find((opt) => opt.optionId === optId)
+  );
+
+  const optionDataArray = optionFromStore?.optionData || [];
 
   const optionLabel = `${isNoDeal === "Y" ? "No Deal" : "Deal"}`;
 
   const handleShareChange = (value, index) => {
-    const updatedOptions = [...initialOptionData];
+    const updatedOptions = [...optionData];
     const marketValue = updatedOptions[index].marketBasket;
 
     const share = parseFloat(value) || 0;
@@ -29,20 +32,22 @@ const MarketOptionTable = ({ optId, optionData, indexId, isNoDeal = 0 }) => {
     updatedOptions[index].marketShare = Number(value);
     updatedOptions[index].marketTrx = trx;
 
-    // updateOptionGroup(optId, updatedOptions);
+    // setInitialOptionData(updatedOptions);
     updateOptionData(optId, updatedOptions);
+    if (onDataEdit) onDataEdit();
+
   };
 
-  const handlePasteEvent = (e, index) => {
+  const handlePasteEvent = (e, index, field = "marketShare") => {
     e.preventDefault();
     const clipboardText = e.clipboardData.getData("text/plain");
     const values = clipboardText
       .split(/\r?\n|\t/)
-      .map(v => v.trim())
+      .map((v) => v.trim())
       .filter(Boolean);
 
-    const updatedFields = [...initialOptionData];
-    
+      const updatedFields = optionDataArray.map((item) => ({...item }));
+
     for (let i = 0; i < values.length; i++) {
       const targetIndex = index + i;
       const share = parseFloat(values[i]) || 0;
@@ -50,15 +55,15 @@ const MarketOptionTable = ({ optId, optionData, indexId, isNoDeal = 0 }) => {
       const trx = Math.round((share / 100) * marketValue);
 
       if (targetIndex < updatedFields.length) {
-        updatedFields[targetIndex].marketShare = Number(values[i]);
+        updatedFields[targetIndex][field] = share;
         updatedFields[targetIndex].marketTrx = trx;
       }
     }
 
-    setInitialOptionData(updatedFields);
-    // updateOptionGroup(optId, updatedOptions);
+    // setInitialOptionData(updatedFields);
     updateOptionData(optId, updatedFields);
-  }
+    if (onDataEdit) onDataEdit();
+  };
 
   if (!optionData || optionData.length === 0) {
     return <p className="text-center">No records found.</p>;
@@ -69,7 +74,7 @@ const MarketOptionTable = ({ optId, optionData, indexId, isNoDeal = 0 }) => {
       <thead>
         <tr>
           <th>Option {indexId + 1}</th>
-          {initialOptionData.map((item) => (
+          {optionDataArray.map((item) => (
             <th key={item.quarter}>{item.quarter}</th>
           ))}
         </tr>
@@ -77,19 +82,19 @@ const MarketOptionTable = ({ optId, optionData, indexId, isNoDeal = 0 }) => {
       <tbody>
         <tr>
           <td>{optionLabel} Market TRx</td>
-          {initialOptionData.map((item) => (
+          {optionDataArray.map((item) => (
             <td key={item.quarter}>{item.marketTrx}</td>
           ))}
         </tr>
         <tr>
           <td>Total {MKT_BASKET}</td>
-          {initialOptionData.map((item) => (
+          {optionDataArray.map((item) => (
             <td key={item.quarter}>{item.marketBasket}</td>
           ))}
         </tr>
         <tr>
           <td>{optionLabel} Market Share</td>
-          {initialOptionData.map((item, index) => (
+          {optionDataArray.map((item, index) => (
             <td key={item.quarter}>
               <Form.Control
                 type="number"
