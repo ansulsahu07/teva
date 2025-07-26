@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { DEAL_ROUTES } from "../constants/routes";
 import useDealFormStore from "../store/useDealFormStore";
+import ToastMessageSuccess from "./ToastMessageSuccess";
 import {
   ACCOUNT_LIST,
-  API_ENDPOINT,
   BRAND_LIST,
   CHANNEL_LIST,
   CONTRACT_TERMS,
@@ -14,7 +14,7 @@ import {
 import dealIdData from "../../data/dealIdData.json";
 import { getQuarterBetweenDates } from "../utils/utils";
 
-const convertQqarter = (arr) => {
+const convertQuarter = (arr) => {
   if (!Array.isArray(arr) || arr.length === 0) return [];
 
   const convert = (str) => {
@@ -41,91 +41,51 @@ const ClientAndBidInformation = () => {
     lookbackStartDate,
     lookbackEndDate,
     lookBackPeriod,
-    // lookback_start_date,
-    // lookback_end_date,
     updateField,
     setMarketBasketRecords,
-    fetchData,
-    insertData,
-    // message,
-    // error,
-    loading,
+    isFirstSubmit,
+    setIsFirstSubmit,
   } = useDealFormStore();
 
   const navigate = useNavigate();
-
   const [newDealId, setNewDealId] = useState(false);
-  const [selectDealId, setSelectDealId] = useState(null);
+  const [selectDealId, setSelectDealId] = useState("");
   const [isGetData, setIsGetData] = useState(false);
+  const [formData, setFormData] = useState({});
   const [isSubmitBtnClicked, setIsSubmitBtnClicked] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  // const [isFirstSubmit, setIsFirstSubmit] = useState(false);
+
+  useEffect(() => {
+    if (lookBackPeriod) {
+      calCulateLookBackDates(lookBackPeriod);
+
+      if (isGetData) {
+        setFormData((prev) => ({
+          ...prev,
+          lookback_start_date: lookbackStartDate,
+          lookback_end_date: lookbackEndDate,
+          lookBackPeriod: lookBackPeriod,
+        }));
+      }
+    }
+  }, [lookBackPeriod]);
+
+  const maxEndStr = contractStart
+    ? new Date(
+      new Date(contractStart).setFullYear(
+        new Date(contractStart).getFullYear() + 5
+      )
+    )
+      .toISOString()
+      .split("T")[0]
+    : "";
 
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
   const maxStartStr = new Date(today.setFullYear(today.getFullYear() + 5))
     .toISOString()
     .split("T")[0];
-
-  const handleNewDealId = () => {
-    // DB Interaction for get new deal id
-    // Payload 
-    // const payload = {
-    //   deal_id: "N",
-    // };
-    // fetchData(API_ENDPOINT.fetchNewDealId, payload, "dealId");
-    setNewDealId(true);
-    // To be remove later
-    // updateField("dealId", 100);
-  };
-
-  const maxEndStr = contractStart
-    ? new Date(
-        new Date(contractStart).setFullYear(
-          new Date(contractStart).getFullYear() + 5
-        )
-      )
-        .toISOString()
-        .split("T")[0]
-    : "";
-
-  const handleDealData = () => {
-    updateField("dealId", selectDealId);
-    updateField("dealDescription", dealDescription);
-
-    const payload = {
-      id: selectDealId,
-      name: dealDescription,
-    };
-    fetchData(API_ENDPOINT.fetchByDealIdName, payload, "dealId", true);
-    setIsGetData(true);
-    // To Be Remove below
-    const selectedItem = dealIdData.find(
-      (item) => item.dealId.toString() === selectDealId
-    );
-    if (selectedItem) {
-      updateField("brand", selectedItem.brand);
-      updateField("account", selectedItem.account);
-      updateField("channel", selectedItem.channel);
-      updateField("contractLength", selectedItem.contract_length);
-      updateField("contractStart", selectedItem.contract_start_date);
-      updateField("contractEnd", selectedItem.contract_end_date);
-      updateField("lookBackPeriod", selectedItem.lookback_period);
-      updateField("lookbackStartDate", selectedItem.lookback_start_date);
-      updateField("lookbackEndDate", selectedItem.lookback_end_date);
-
-      // setFormData({
-      //   dealDescription: selectedItem.deal_name,
-      //   brand: selectedItem.brand,
-      //   account: selectedItem.account,
-      //   channel: selectedItem.channel,
-      //   contractStart: selectedItem.contract_start_date,
-      //   contractEnd: selectedItem.contract_end_date,
-      //   contractLength: selectedItem.contract_length,
-      //   lookBackPeriod: selectedItem.lookback_period,
-      //   lookback_start_date: lookbackStartDate,
-      //   lookback_end_date: lookbackEndDate,
-      // });
-    }
-  };
 
   const calCulateLookBackDates = (period) => {
     const now = new Date();
@@ -167,33 +127,43 @@ const ClientAndBidInformation = () => {
     updateField("lookbackEndDate", endFormatted);
   };
 
-  const handleLookbackPeriod = (period) => {
-    calCulateLookBackDates(period);
-    updateField("lookBackPeriod", period);
+  const handleNewDeal = () => {
+    const newId = `DEAL-${Date.now()}`;
+    updateField("dealId", newId);
   };
 
-  const formData = {
-    dealId: 1,
-    dealDescription,
-    brand,
-    account,
-    channel,
-    contractStart,
-    contractEnd,
-    contractLength,
-    lookbackStartDate,
-    lookbackEndDate,
-    lookBackPeriod,
-  };
-  let isFormValid = false;
-  isFormValid = Object.values(formData).every(
-    (value) => value.toString().trim() !== ""
-  );
+  const handleDealData = (id) => {
+    setIsGetData(true);
+    const selectedItem = dealIdData.find(
+      (item) => item.dealId.toString() === id
+    );
+    if (selectedItem) {
+      updateField("brand", selectedItem.brand);
+      updateField("account", selectedItem.account);
+      updateField("channel", selectedItem.channel);
+      updateField("contractLength", selectedItem.contract_length);
+      updateField("contractStart", selectedItem.contract_start_date);
+      updateField("contractEnd", selectedItem.contract_end_date);
+      updateField("lookBackPeriod", selectedItem.lookback_period);
+      updateField("lookbackStartDate", selectedItem.lookback_start_date);
+      updateField("lookbackEndDate", selectedItem.lookback_end_date);
 
-  // const convertLookbackDate = (qtr) => {
-  //   const [quarter, year] = qtr.split('Q');
-  //   return Number(`${year}${quarter}`);
-  // }
+      setFormData({
+        dealDescription: selectedItem.deal_name,
+        brand: selectedItem.brand,
+        account: selectedItem.account,
+        channel: selectedItem.channel,
+        contractStart: selectedItem.contract_start_date,
+        contractEnd: selectedItem.contract_end_date,
+        contractLength: selectedItem.contract_length,
+        lookBackPeriod: selectedItem.lookback_period,
+        lookback_start_date: lookbackStartDate,
+        lookback_end_date: lookbackEndDate,
+      });
+    }
+  };
+
+  const isFormComplete = dealId && dealDescription && brand && account && channel && contractStart && contractLength;
 
   const submitDealForm = () => {
     const contractTermInQuarter = getQuarterBetweenDates(
@@ -211,8 +181,8 @@ const ClientAndBidInformation = () => {
     // const lbStart = lookbackTermInQuarter[0];
     // const lbEnd = lookbackTermInQuarter[lookbackTermInQuarter.length - 1];
 
-    const ctPeriodInQuarter = convertQqarter(contractTermInQuarter);
-    const lbPeriodInQuarter = convertQqarter(lookbackTermInQuarter);
+    const ctPeriodInQuarter = convertQuarter(contractTermInQuarter);
+    const lbPeriodInQuarter = convertQuarter(lookbackTermInQuarter);
 
     // console.log('test', ctPeriodInQuarter, lbPeriodInQuarter);
 
@@ -223,7 +193,9 @@ const ClientAndBidInformation = () => {
       ...lookbackTermInQuarter,
       ...contractTermInQuarter,
     ];
+
     const markettRecords = [];
+
     for (let qtr = 0, len = totaltermInQuarter.length; qtr < len; qtr++) {
       markettRecords.push({
         quarter: totaltermInQuarter[qtr],
@@ -244,8 +216,10 @@ const ClientAndBidInformation = () => {
       });
     }
     setMarketBasketRecords(markettRecords);
-
-    const totalPeriodInQuarter = convertQqarter(totaltermInQuarter);
+    setShowToast(true);
+    updateField("contractTermPeriods", contractTermInQuarter);
+    updateField("lookbackTermPeriods", lookbackTermInQuarter);
+    const totalPeriodInQuarter = convertQuarter(totaltermInQuarter);
     updateField("totalPeriodInQuarter", totalPeriodInQuarter);
 
     let grUnitPayload;
@@ -262,30 +236,9 @@ const ClientAndBidInformation = () => {
         period: totalPeriodInQuarter,
       };
     }
-    fetchData(API_ENDPOINT.fetchAssumptions, grUnitPayload, 'basketGrowthUnit');
-
-    const payload = {
-      dealId,
-      deal_name: dealDescription,
-      brand,
-      account,
-      channel,
-      contract_start_date: contractStart,
-      contract_end_date: contractEnd,
-      contract_length: contractLength,
-      lookback_start_date: lbPeriodInQuarter[0],
-      lookback_end_date: lbPeriodInQuarter[1],
-      modified_date: todayStr,
-      modified_by: "Ajovy User",
-      created_date: todayStr,
-      created_by: "Ajovy",
-      lookback_period: Number(lookBackPeriod),
-      deal_frozen: "N",
-    };
-
-    insertData(API_ENDPOINT.insertDealData, payload);
-    setIsSubmitBtnClicked(true);
   };
+
+  const resetAllData = useDealFormStore((state) => state.resetStore);
 
   return (
     <Container className="w-50">
@@ -300,6 +253,7 @@ const ClientAndBidInformation = () => {
           </Form.Label>
           <Col sm={6}>
             <Form.Control
+              required
               style={{ cursor: selectDealId ? "not-allowed" : "" }}
               value={dealId}
               readOnly
@@ -310,9 +264,13 @@ const ClientAndBidInformation = () => {
             <Button
               disabled={selectDealId}
               style={{ cursor: !selectDealId ? "pointer" : "not-allowed" }}
-              onClick={() => handleNewDealId()}
+              onClick={() => {
+                setNewDealId(true);
+                resetAllData();
+                handleNewDeal();
+              }}
             >
-              {loading ? "Loading..." : "New"}
+              New
             </Button>
           </Col>
         </Form.Group>
@@ -341,10 +299,7 @@ const ClientAndBidInformation = () => {
           <Col sm={2}>
             <Button
               disabled={!selectDealId}
-              style={{
-                cursor: !selectDealId ? "not-allowed" : null,
-              }}
-              onClick={() => handleDealData()}
+              onClick={() => handleDealData(selectDealId)}
             >
               Get Data
             </Button>
@@ -359,7 +314,7 @@ const ClientAndBidInformation = () => {
           <Col sm={8}>
             <Form.Control
               type="text"
-              value={dealDescription}
+              value={isGetData ? formData.dealDescription : dealDescription}
               disabled={isGetData}
               style={{ cursor: isGetData ? "not-allowed" : "" }}
               readOnly={isGetData}
@@ -378,7 +333,7 @@ const ClientAndBidInformation = () => {
             <Form.Select
               disabled={isGetData}
               style={{ cursor: isGetData ? "not-allowed" : "" }}
-              value={brand}
+              value={isGetData ? formData.brand : brand}
               onChange={(e) => updateField("brand", e.target.value)}
             >
               <option value="" disabled>
@@ -402,7 +357,7 @@ const ClientAndBidInformation = () => {
             <Form.Select
               disabled={isGetData}
               style={{ cursor: isGetData ? "not-allowed" : "" }}
-              value={account}
+              value={isGetData ? formData.account : account}
               onChange={(e) => updateField("account", e.target.value)}
             >
               <option value="" disabled>
@@ -479,7 +434,7 @@ const ClientAndBidInformation = () => {
             <Form.Select
               disabled={isGetData}
               style={{ cursor: isGetData ? "not-allowed" : "" }}
-              value={contractLength}
+              value={isGetData ? formData.contractLength : contractLength}
               onChange={(e) => updateField("contractLength", e.target.value)}
             >
               <option value="" disabled>
@@ -503,8 +458,8 @@ const ClientAndBidInformation = () => {
             <Form.Select
               disabled={isGetData}
               style={{ cursor: isGetData ? "not-allowed" : "" }}
-              value={lookBackPeriod}
-              onChange={(e) => handleLookbackPeriod(e.target.value)}
+              value={isGetData ? formData.lookBackPeriod : lookBackPeriod}
+              onChange={(e) => updateField("lookBackPeriod", e.target.value)}
             >
               <option value="" disabled>
                 Select Quarter
@@ -525,7 +480,9 @@ const ClientAndBidInformation = () => {
           </Form.Label>
           <Col sm={4}>
             <Form.Control
-              value={lookbackStartDate}
+              value={
+                isGetData ? formData.lookback_start_date : lookbackStartDate
+              }
               type="text"
               disabled={isGetData}
               style={{ cursor: isGetData ? "not-allowed" : null }}
@@ -533,7 +490,7 @@ const ClientAndBidInformation = () => {
           </Col>
           <Col sm={4}>
             <Form.Control
-              value={lookbackEndDate}
+              value={isGetData ? formData.lookback_end_date : lookbackEndDate}
               disabled={isGetData}
               style={{ cursor: isGetData ? "not-allowed" : null }}
               type="text"
@@ -552,26 +509,31 @@ const ClientAndBidInformation = () => {
             sm={8}
           >
             <Button
-              disabled={!isFormValid}
-              className={`vi-btn-solid-magenta vi-btn-solid ${
-                isGetData || !newDealId ? "btn-blocked" : ""
-              }`}
-              onClick={submitDealForm}
+              variant="success"
+              className={`vi-btn-solid-magenta vi-btn-solid ${isGetData || !newDealId ? "btn-blocked" : ""
+                }`}
+              disabled={!isFormComplete}
+              onClick={() => {
+                submitDealForm();
+                setIsFirstSubmit(true);
+              }}
             >
               SUBMIT
             </Button>
-            {/* {isSubmitBtnClicked ||
-              (isGetData && ( */}
+            <ToastMessageSuccess
+              show={showToast}
+              message="Deal Data Submitted Successfully!"
+              onClose={() => setShowToast(false)}
+            />
             <Button
-              disabled={!isSubmitBtnClicked}
-              className={`vi-btn-solid-magenta vi-btn-solid ${
-                !isSubmitBtnClicked || !isGetData ? "btn-blocked" : ""
-              }`}
+              variant="success"
+              disabled={!isFirstSubmit}
+              className={`vi-btn-solid-magenta vi-btn-solid ${!isSubmitBtnClicked && !isGetData ? "btn-blocked" : ""
+                }`}
               onClick={() => navigate(DEAL_ROUTES.UTILIZATIONANDMSDATA.PATH)}
             >
-              NEXT
+              Next
             </Button>
-            {/* ))} */}
           </Col>
         </Form.Group>
       </Form>

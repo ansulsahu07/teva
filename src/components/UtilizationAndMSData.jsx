@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DEAL_ROUTES } from "../constants/routes";
 import { Button, Col, Form, Row } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -6,8 +6,8 @@ import useDealFormStore from "../store/useDealFormStore";
 import MarketBasketTable from "./MarketBasketTable";
 import MarketOptionTable from "./MarketOptionTable";
 import NationalMarketShareTable from "./NationalMarketShareTable";
-import { API_ENDPOINT } from "../constants/ui";
-import { convertQuarter } from "../utils/utils";
+import ToastMessageSuccess from "./ToastMessageSuccess";
+
 
 const forcastData = {
   2023: 21,
@@ -30,12 +30,14 @@ const UtilizationAndMSData = () => {
     removeOption,
     updateNoDealOption,
     setNationalMSForcast,
-    updateField,
-    insertData,
-    optionGroups,
-    addOptionGroup,
+    setMarketBasketRecords,
+    syncOptionsWithMarketBasket
   } = useDealFormStore();
   const [marketData, setMarketData] = useState([]);
+  const [isFirstSubmit, setIsFirstSubmit] = useState(false);
+  const [tableCount, setTableCount] = useState(0);
+  const [isFinalSubmit, setIsFinalSubmit] = useState(false);
+  const [showShareToast, setShowShareToast] = useState(false);
 
   const navigate = useNavigate();
 
@@ -43,37 +45,47 @@ const UtilizationAndMSData = () => {
     Number(`${Date.now()}${Math.floor(Math.random() * 1000)}`);
 
   const updateMarketData = (data) => {
-    // console.log("data", data);
-    // updateField("masterMarketData", data);
-
-    // const basketGrowthPayload = data.map(
-    //   ({ quarter, growth, marketBasket, marketTrx, marketShare, ...rest }) => ({
-    //     period: convertQuarter(quarter),
-    //     growth_units: growth,
-    //     ...rest,
-    //   })
-    // );
-    // insertData(API_ENDPOINT.insertBasketGrowthUnits, basketGrowthPayload);
-
-    // addOptionGroup(generateUniqueOptionId(), data);
-    // console.log("NewStyle", optionGroups);
     setMarketData(data);
-    addOption({
-      optionId: generateUniqueOptionId(),
-      optionDesc: "",
-      noDeal: "N",
-      optionData: data,
-    });
-  };
-
-  const addOptionTable = () => {
-    if (optionGroups.length < 10) {
-      // addOptions(masterMarketData);
+    setMarketBasketRecords(data);
+    syncOptionsWithMarketBasket();
+    if (!isFirstSubmit) {
+      const cloned = data.map(item => ({
+        ...item,
+        marketShare: "",
+        marketTrx: 0,
+      }));
       addOption({
         optionId: generateUniqueOptionId(),
         optionDesc: "",
         noDeal: "N",
-        optionData: marketData,
+        optionData: cloned,
+      });
+      addOption({
+        optionId: generateUniqueOptionId(),
+        optionDesc: "No-Deal Option",
+        noDeal: "Y",
+        optionData: cloned,
+      });
+      setTableCount((prev) => prev + 2);
+      setIsFirstSubmit(true);
+    }
+  };
+
+  const clonedData = masterMarketData.map((item) => ({
+    ...item,
+    marketShare: "",
+    marketTrx: 0,
+  }));
+
+  const addOptionTable = () => {
+    setTableCount((prev) => prev + 1);
+    console.log(tableCount);
+    if (options.length < 10) {
+      addOption({
+        optionId: generateUniqueOptionId(),
+        optionDesc: "",
+        noDeal: "N",
+        optionData: clonedData,
       });
     }
   };
@@ -87,18 +99,29 @@ const UtilizationAndMSData = () => {
   });
 
   const handleSubmitShareData = () => {
-    // console.log("optionGroups", optionGroups);
+    console.log("options", options);
     const hasEmptyShareData = options.some((opt) =>
       opt.optionData.some(
         (item) => String(item.marketShare || "").trim() === ""
       )
     );
 
+    const hasEmptyDescriptions = options.some((opt) =>
+      !opt.optionDesc || opt.optionDesc.trim() === ""
+    );
+
+    if (hasEmptyDescriptions) {
+      alert("Please fill in all Option Descriptions.");
+      return;
+    }
+
     if (hasEmptyShareData) {
       alert("Some Market Share field is empty");
     } else {
+      setIsFinalSubmit(true);
       submitShareData();
       setNationalMSForcast(nationalForecastData);
+      setShowShareToast(true);
     }
   };
 
@@ -106,7 +129,33 @@ const UtilizationAndMSData = () => {
     return <p className="text-center">No records found.</p>;
   }
 
-  // console.log("options ------------", options);
+  // console.log("nationalForecastData", nationalForecastData);
+
+  const handleDeleteTable = () => {
+    if (tableCount > 2) {
+      setTableCount((prev) => prev - 1);
+    }
+  };
+
+  const dealOptions = options.filter(opt => opt.noDeal === "N");
+  const noDealOptions = options.filter(opt => opt.noDeal === "Y");
+  const dealCount = dealOptions.length;
+
+  useEffect(() => {
+    if (masterMarketData.length > 0) {
+      setMarketData(masterMarketData);
+
+      if (options.length > 0) {
+        // Restore table count from existing options (excluding No Deal)
+        setTableCount(options.filter(opt => opt.noDeal === "N").length);
+        setIsFirstSubmit(true); // Indicates that submission already happened
+      }
+    }
+  }, []);
+
+  // console.log("Store options after sync:", useDealFormStore.getState().options);
+
+
   return (
     <div className="text-center mb-4">
       <h1 className="text-teva-green">
@@ -114,64 +163,141 @@ const UtilizationAndMSData = () => {
       </h1>
       <MarketBasketTable
         initialGrowthData={masterMarketData}
-        onBasketUpdate={updateMarketData}
+        onBasketUpdate={(data) => {
+          setMarketData(data);
+          setMarketBasketRecords(data);
+          syncOptionsWithMarketBasket();
+          updateMarketData(data);
+        }}
+        isFirstSubmit={isFirstSubmit}
+        setIsFirstSubmit={setIsFirstSubmit}
+        tableCount={tableCount}
+        setTableCount={setTableCount}
       />
-      {marketData.length > 0 &&
-        options.map((option, index) => (
-          <div className="mt-4" key={option.optionId}>
-            <h5 className="mb-3 text-start">
-              Market Option Table - {index + 1}
-            </h5>
-            <Form>
-              <Form.Group as={Row} className="mb-2 text-start">
-                <Form.Label column sm="2" className="fw-bold">
-                  Option Description
-                </Form.Label>
-                <Col sm="8">
-                  <Form.Control
-                    type="text"
-                    maxLength={50}
-                    required
-                    onChange={(e) =>
-                      updateOption(
-                        option.optionId,
-                        "optionDesc",
-                        e.target.value
-                      )
-                    }
-                  />
-                </Col>
-                <Col sm="1" className="d-flex justify-content-end">
-                  <Form.Check
-                    key={option.optionId}
-                    type="radio"
-                    label={<span className="fw-bold">No Deal</span>}
-                    name="noDealOption"
-                    className="py-2"
-                    onChange={() => updateNoDealOption(option.optionId)}
-                    checked={option.noDeal === "Y"}
-                  />
-                </Col>
-                <Col sm="1" className="py-2 text-end">
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => removeOption(option.optionId)}
-                  >
-                    REMOVE
-                  </Button>
-                </Col>
-              </Form.Group>
-            </Form>
-            <MarketOptionTable
-              key={option.optionId}
-              optId={option.optionId}
-              optionData={option.optionData}
-              indexId={index}
-              isNoDeal={option.noDeal}
-            />
-          </div>
-        ))}
+
+      {marketData.length > 0 && (
+        <>
+          {dealOptions.map((option, index) => (
+            <div className="mt-4" key={option.optionId}>
+              <h5 className="mb-3 text-start">
+                Market Option Table - {index + 1}
+              </h5>
+              <Form>
+                <Form.Group as={Row} className="mb-2 text-start">
+                  <Form.Label column sm="2" className="fw-bold">
+                    Option Description
+                  </Form.Label>
+                  <Col sm="8">
+                    <Form.Control
+                      type="text"
+                      maxLength={50}
+                      required
+                      value={option.optionDesc}
+                      onChange={(e) =>
+                        updateOption(option.optionId, "optionDesc", e.target.value)
+                      }
+                      isInvalid={!option.optionDesc || option.optionDesc.trim() === ""}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      Option Description is required.
+                    </Form.Control.Feedback>
+                  </Col>
+                  <Col sm="1" className="d-flex justify-content-end">
+                    <Form.Check
+                      key={option.optionId}
+                      type="radio"
+                      label={<span className="fw-bold">Deal</span>}
+                      name="noDealOption"
+                      className="py-2"
+                      onChange={() => updateNoDealOption(option.optionId)}
+                      checked={option.noDeal !== "N"}
+                    />
+                  </Col>
+                  <Col sm="1" className="py-2 text-end">
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      disabled={tableCount <= 2}
+                      onClick={() => {
+                        removeOption(option.optionId);
+                        handleDeleteTable();
+                      }}
+                    >
+                      REMOVE
+                    </Button>
+                  </Col>
+                </Form.Group>
+              </Form>
+              <MarketOptionTable
+                key={option.optionId}
+                optId={option.optionId}
+                indexId={index}
+                isNoDeal={option.noDeal}
+              />
+            </div>
+          ))}
+          {noDealOptions.map((option, index) => (
+            <div className="mt-4" key={option.optionId}>
+              <h5 className="mb-3 text-start">
+                Market Option Table - {dealCount + 1}
+              </h5>
+              <Form>
+                <Form.Group as={Row} className="mb-2 text-start">
+                  <Form.Label column sm="2" className="fw-bold">
+                    Option Description
+                  </Form.Label>
+                  <Col sm="8">
+                    <Form.Control
+                      type="text"
+                      maxLength={50}
+                      required
+                      value={option.optionDesc}
+                      onChange={(e) =>
+                        updateOption(option.optionId, "optionDesc", e.target.value)
+                      }
+                      isInvalid={!option.optionDesc || option.optionDesc.trim() === ""}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      Option Description is required.
+                    </Form.Control.Feedback>
+                  </Col>
+                  <Col sm="1" className="d-flex justify-content-end">
+                    <Form.Check
+                      key={option.optionId}
+                      type="radio"
+                      label={<span className="fw-bold">No Deal</span>}
+                      name="noDealOption"
+                      className="py-2"
+                      onChange={() => updateNoDealOption(option.optionId)}
+                      checked={option.noDeal === "Y"}
+                    />
+                  </Col>
+                  <Col sm="1" className="py-2 text-end">
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      disabled={isFirstSubmit}
+                      onClick={() => {
+                        removeOption(option.optionId);
+                        handleDeleteTable();
+                      }}
+                    >
+                      REMOVE
+                    </Button>
+                  </Col>
+                </Form.Group>
+              </Form>
+              <MarketOptionTable
+                key={option.optionId}
+                optId={option.optionId}
+                optionData={option.optionData}
+                indexId={index}
+                isNoDeal={option.noDeal}
+              />
+            </div>
+          ))}
+        </>
+      )}
 
       <NationalMarketShareTable forecastData={nationalForecastData} />
 
@@ -182,23 +308,32 @@ const UtilizationAndMSData = () => {
         BACK
       </Button>
 
-      {/* {masterMarketData.length > 0 && ( */}
-      <Button
-        className="vi-btn-solid-magenta vi-btn-solid"
-        onClick={addOptionTable}
-      >
-        ADD OPTION
-      </Button>
-      {/* )} */}
+      {marketData.length > 0 && (
+        <Button
+          disabled={tableCount >= 10}
+          className="vi-btn-solid-magenta vi-btn-solid"
+          onClick={addOptionTable}
+        >
+          ADD OPTION
+        </Button>
+      )}
 
       <Button
+        disabled={!isFirstSubmit}
         className="vi-btn-solid-magenta vi-btn-solid"
         onClick={handleSubmitShareData}
       >
         SUBMIT
       </Button>
 
+      <ToastMessageSuccess
+        show={showShareToast}
+        message="Market Share Submitted Successfully!"
+        onClose={() => setShowShareToast(false)}
+      />
+
       <Button
+        disabled={!isFinalSubmit}
         className="vi-btn-solid-magenta vi-btn-solid"
         onClick={() => navigate(DEAL_ROUTES.DEAL_ANALYSIS_MODEL.PATH)}
       >
