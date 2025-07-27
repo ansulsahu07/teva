@@ -1,63 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import financialData from '../../data/financialData.json'; // Your JSON file
+import financialData from '../../data/financialData.json';
 import { Container, Table, Spinner, Button } from 'react-bootstrap';
 import { DEAL_ROUTES } from '../constants/routes';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
+import { financialTableMetrics } from '../constants/ui';
+import ExportFinancialData from './ExportFinancialData';
+
 export const FinancialTable = ({ optionId, dealId }) => {
     console.log("FinancialTable", optionId, dealId);
-    if (!optionId || !dealId) return <div>No data</div>;
     const navigate = useNavigate();
-    // const { dealId, optionId } = useParams();
     const [tableData, setTableData] = useState({});
     const [selectedDeal, setSelectedDeal] = useState(null);
 
-    const parseCurrency = (val) => {
-        if (!val) return 0;
-        return Number(val.toString().replace(/[$,]/g, '')) || 0;
-    };
-
-    const getFormattedAmount = (val) => {
-        const num = parseCurrency(val);
-        return num.toLocaleString('en-US');
-    };
-
-    // useEffect(() => {
-    //     const deal = financialData.find(d => d.dealId.toString() === dealId);
-    //     if (!deal) return;
-    //     console.log("dealId",dealId);
-    //     console.log("optionId",optionId);
-
-    //     const option = deal.options[optionId];
-    //     console.log("option", option);
-
-    //     setSelectedDeal(deal);
-    //     setTableData(option.years);
-    // }, [optionId]);
-
-
     useEffect(() => {
-        if (!optionId || !dealId) return;
+        const deal = financialData.find(d => d.dealId.toString() === dealId?.toString());
+        if (!deal) return;
 
-        const deal = financialData.find(d => d.dealId.toString() === dealId.toString());
-        if (!deal) {
-            console.error("No deal found for dealId:", dealId);
-            return;
-        }
-
-        const option = deal.options.find(o => o.optionDesc.toString() === optionId.toString());
-        if (!option) {
-            console.error("No option found for optionId:", optionId);
-            return;
-        }
+        const option = deal.options.find(o => o.optionDesc.toString() === optionId?.toString());
+        if (!option) return;
 
         setSelectedDeal(deal);
         setTableData(option.years);
+        console.log(deal,option);
     }, [optionId, dealId]);
 
+    const parseCurrency = (val) => {
+        if (!val) return 0;
+        const isPercent = typeof val === 'string' && val.includes('%');
+        const cleaned = val.toString().replace(/[$,%]/g, '');
+        const num = Number(cleaned);
+        return isPercent ? num / 100 : num;
+    };
 
-    if (!selectedDeal || !tableData || Object.keys(tableData).length === 0) {
+    const getFormattedAmount = (val, original) => {
+        if (original?.includes('%')) return `${(val * 100).toFixed(2)}%`;
+        return val.toLocaleString('en-US');
+    };
+
+    const yearKeys = Object.keys(tableData);
+
+    if (!optionId || !dealId || !selectedDeal || yearKeys.length === 0) {
         return (
             <Container className="text-center my-5">
                 <Spinner animation="border" variant="primary" />
@@ -65,170 +47,18 @@ export const FinancialTable = ({ optionId, dealId }) => {
             </Container>
         );
     }
-
-    const yearKeys = Object.keys(tableData);
-    const fields = [
-        "Gross Sales",
-        "Rebates/Admin Fees/Price",
-        "Purchase Discounts",
-        "IRA"
-    ];
-
-
-
-    const exportTableToExcel = async () => {
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Deal Financials');
-
-        const headerRow1 = ['Deal Financials'];
-        const headerRow2 = [''];
-
-        // Construct headers dynamically
-        yearKeys.forEach((year) => {
-            headerRow1.push(year, '', '');
-            headerRow2.push('Deal', 'No Deal', 'Deal vs No Deal');
-        });
-
-        headerRow1.push('Total Contract Period', '', '');
-        headerRow2.push('Deal', 'No Deal', 'Deal vs No Deal');
-
-        worksheet.addRow(headerRow1);
-        worksheet.addRow(headerRow2);
-
-        // Merge year headers
-        let colIndex = 2; // Starts from column B (1-based index)
-        yearKeys.forEach(() => {
-            worksheet.mergeCells(1, colIndex, 1, colIndex + 2);
-            colIndex += 3;
-        });
-        worksheet.mergeCells(1, colIndex, 1, colIndex + 2); // Total Contract Period
-
-        // Style header rows
-        worksheet.getRow(1).eachCell((cell) => {
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            cell.font = { bold: true };
-            cell.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFE6F7FF' }
-            };
-            cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
-        });
-
-        worksheet.getRow(2).eachCell((cell) => {
-            cell.alignment = { vertical: 'middle', horizontal: 'center' };
-            cell.font = { bold: true };
-            cell.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFF0F8FF' }
-            };
-            cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
-        });
-
-        // Add data rows
-        fields.forEach((field) => {
-            let totalDeal = 0;
-            let totalNoDeal = 0;
-            const row = [field === 'Rebates/Admin Fees/Price' ? 'Rebates/Admin Fees/Price Protection' : field];
-
-            yearKeys.forEach((year) => {
-                const dealRaw = tableData[year]?.Deal?.[field] || '$0';
-                const noDealRaw = selectedDeal['No Deal']?.[year]?.[field] || '$0';
-
-                const dealVal = parseCurrency(dealRaw);
-                const noDealVal = parseCurrency(noDealRaw);
-                const diff = dealVal - noDealVal;
-
-                totalDeal += dealVal;
-                totalNoDeal += noDealVal;
-
-                row.push(dealVal, noDealVal, diff);
-            });
-
-            const totalDiff = totalDeal - totalNoDeal;
-            row.push(totalDeal, totalNoDeal, totalDiff);
-
-            const dataRow = worksheet.addRow(row);
-
-            dataRow.eachCell((cell) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                };
-            });
-
-
-            // Format currency and apply conditional background
-            row.forEach((val, i) => {
-                if (i === 0) return; // skip label
-                const cell = dataRow.getCell(i + 1);
-                if (typeof val === 'number') {
-                    cell.numFmt = '"$"#,##0';
-                    if (i >= row.length - 3) {
-                        // Highlight totals
-                        cell.font = { bold: true };
-                        if (i === row.length - 3) {
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAFBEA' } }; // Deal
-                        } else if (i === row.length - 2) {
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE4EC' } }; // No Deal
-                        } else {
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF3CD' } }; // Diff
-                        }
-                    }
-                }
-            });
-        });
-
-        // Auto width
-        worksheet.columns.forEach((col) => {
-            col.width = 18;
-        });
-
-        // Save the file
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        saveAs(blob, 'Deal_Financials.xlsx');
-    };
-
-
-    const handleOnSelectOption = (e) => {
-        setChooseOption(Number(e.target.value));
-    };
-
     return (
         <>
-            <Table
-                striped
-                bordered
-                responsive={false} // disable scroll behavior from bootstrap
-                className="mt-4 text-center market-table"
-            >
+            <Table striped bordered responsive className="mt-4 text-center market-table">
                 <thead>
                     <tr style={{ backgroundColor: '#e6f7ff' }}>
                         <th rowSpan="2">Deal Financials</th>
-                        {yearKeys.map((year) => (
-                            <th key={year} colSpan="3">
-                                {year}
-                            </th>
-                        ))}
+                        {yearKeys.map(year => <th key={year} colSpan="3">{year}</th>)}
                         <th colSpan="3">Total Contract Period</th>
                     </tr>
                     <tr style={{ backgroundColor: '#f0f8ff' }}>
-                        {yearKeys.map((year) => (
-                            <React.Fragment key={`head-${year}`}>
+                        {yearKeys.map(year => (
+                            <React.Fragment key={year}>
                                 <th>Deal</th>
                                 <th>No Deal</th>
                                 <th>Deal vs No Deal</th>
@@ -240,71 +70,84 @@ export const FinancialTable = ({ optionId, dealId }) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {fields.map((field) => {
-                        let totalDeal = 0,
-                            totalNoDeal = 0;
+                    {financialTableMetrics.map((item, idx) => {
+                        if (item.isSection) {
+                            return (
+                                <tr key={idx} style={{ backgroundColor: '#f6f6f6' }}>
+                                    <td colSpan={yearKeys.length * 3 + 4} style={{ fontWeight: 'bold' }}>{item.label}</td>
+                                </tr>
+                            );
+                        }
 
-                        const yearData = yearKeys.map((year) => {
-                            const dealRaw = tableData[year]?.Deal?.[field] || '$0';
-                            const noDealRaw = selectedDeal['No Deal']?.[year]?.[field] || '$0';
+                        let totalDeal = 0, totalNoDeal = 0;
+
+                        const yearData = yearKeys.map(year => {
+                            const flatVal = tableData[year]?.[item];
+                            if (flatVal !== undefined && typeof flatVal !== 'object') {
+                                const parsed = parseCurrency(flatVal);
+                                return { flat: true, val: parsed, original: flatVal };
+                            }
+
+                            const dealRaw = tableData[year]?.Deal?.[item] || '$0';
+                            const noDealRaw = selectedDeal['No Deal']?.[year]?.[item] || '$0';
+
                             const dealVal = parseCurrency(dealRaw);
                             const noDealVal = parseCurrency(noDealRaw);
+                            const diff = dealVal - noDealVal;
+
                             totalDeal += dealVal;
                             totalNoDeal += noDealVal;
+
                             return {
+                                flat: false,
                                 deal: dealVal,
                                 noDeal: noDealVal,
-                                diff: dealVal - noDealVal,
+                                diff: diff,
+                                originalDeal: dealRaw,
+                                originalNoDeal: noDealRaw
                             };
                         });
 
+                        const totalDiff = totalDeal - totalNoDeal;
+
                         return (
-                            <tr key={field}>
-                                <td>
-                                    {field === 'Rebates/Admin Fees/Price'
-                                        ? 'Rebates/Admin Fees/Price Protection'
-                                        : field}
-                                </td>
-                                {yearData.map((data, idx) => (
-                                    <React.Fragment key={`${field}-${yearKeys[idx]}`}>
-                                        <td>$ {getFormattedAmount(data.deal)}</td>
-                                        <td>$ {getFormattedAmount(data.noDeal)}</td>
-                                        <td>$ {getFormattedAmount(data.diff)}</td>
-                                    </React.Fragment>
+                            <tr key={item}>
+                                <td>{item}</td>
+                                {yearData.map((data, i) => (
+                                    data.flat ? (
+                                        <td colSpan={3} key={`${item}-flat-${i}`} className="fw-bold">
+                                            {getFormattedAmount(data.val, data.original)}
+                                        </td>
+                                    ) : (
+                                        <React.Fragment key={`${item}-deal-${i}`}>
+                                            <td>{getFormattedAmount(data.deal, data.originalDeal)}</td>
+                                            <td>{getFormattedAmount(data.noDeal, data.originalNoDeal)}</td>
+                                            <td>{getFormattedAmount(data.diff)}</td>
+                                        </React.Fragment>
+                                    )
                                 ))}
-                                <td style={{ backgroundColor: '#eafbea', fontWeight: 'bold' }}>
-                                    $ {getFormattedAmount(totalDeal)}
-                                </td>
-                                <td style={{ backgroundColor: '#fce4ec', fontWeight: 'bold' }}>
-                                    $ {getFormattedAmount(totalNoDeal)}
-                                </td>
-                                <td style={{ backgroundColor: '#fff3cd', fontWeight: 'bold' }}>
-                                    $ {getFormattedAmount(totalDeal - totalNoDeal)}
-                                </td>
+                                {yearData[0].flat ? (
+                                    <td colSpan={3}>—</td>
+                                ) : (
+                                    <>
+                                        <td style={{ backgroundColor: '#eafbea', fontWeight: 'bold' }}>{getFormattedAmount(totalDeal)}</td>
+                                        <td style={{ backgroundColor: '#fce4ec', fontWeight: 'bold' }}>{getFormattedAmount(totalNoDeal)}</td>
+                                        <td style={{ backgroundColor: '#fff3cd', fontWeight: 'bold' }}>{getFormattedAmount(totalDiff)}</td>
+                                    </>
+                                )}
                             </tr>
                         );
                     })}
                 </tbody>
             </Table>
+
             <div className="d-flex justify-content-center mb-5">
-                <Button
-                    variant="success"
-                    className={`vi-btn-solid-magenta vi-btn-solid`}
-                    type="Button"
-                    size="sm"
-                    onClick={() => { navigate(DEAL_ROUTES.DEAL_ANALYSIS_MODEL.PATH) }}
-                >
+                <Button variant="success" className="vi-btn-solid-magenta vi-btn-solid" size="sm"
+                    onClick={() => navigate(DEAL_ROUTES.DEAL_ANALYSIS_MODEL.PATH)}>
                     BACK
                 </Button>
-
-                <Button
-                    variant="success"
-                    className={`vi-btn-solid-magenta vi-btn-solid`}
-                    type="Button"
-                    size="sm"
-                    onClick={exportTableToExcel}
-                >
-                    EXPORT
+                <Button variant="success" className="vi-btn-solid-magenta vi-btn-solid" size="sm" onClick={() => ExportFinancialData(financialData)}>
+                    Export to Excel
                 </Button>
             </div>
         </>

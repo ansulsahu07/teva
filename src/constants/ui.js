@@ -46,3 +46,42 @@ export const API_ENDPOINT = {
   // Page3
   insertDealAnalysisData: '/insert-deal-analysis-data'
 }
+
+export const financialTableMetrics= [
+  { label: "Deal Financials", isSection: true },
+
+  { label: "Gross Sales", isSection: true },
+  "Rebates/Admin Fees/Price Protection",
+  "Purchase Discounts",
+  "IRA",
+
+  { label: "Net Sales", isSection: true },
+  "Cost of Goods Sold",
+  "Royalties",
+
+  { label: "Gross Profit", isSection: true },
+  "Operating Cost (Variable)",
+  "Operating Cost (Fixed)",
+
+  { label: "Gross Profit less Operating Cost", isSection: true },
+
+  { label: "Annual Rx", isSection: true },
+  "Teva GM%",
+  "Gross Profit per Rx",
+  "Operating Cost per Rx",
+
+  { label: "Gross Profit less Operating Cost per Rx", isSection: true },
+
+  "Rebates/Admin Fees/Price Protection %",
+  { label: "NMS", isSection: true },
+  "Annual Average Market Share",
+  "Exit Market Share",
+  "+/- NMS",
+
+  { label: "Gross Sales $ Value for Each Rebate %", isSection: true },
+  { label: "$$$ Value for Each MS %", isSection: true },
+
+  "Break-Even Rebate vs No Deal",
+  "Break-Even Addt'l Rebate vs No Deal",
+  "Break-Even Share vs No Deal"
+];
