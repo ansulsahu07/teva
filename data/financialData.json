@@ -13,45 +13,120 @@
                 "Co-Pay Assistance": "$1,000",
                 "Purchase Discounts": "$1,00,000",
                 "IRA": "$250,000",
-                "Medicaid URA": 0
+                "Net Sales": "2400000",
+                "Cost of Goods Sold": "230000",
+                "Royalties": "240000",
+                "Gross Profit": "4500000",
+                "Operating Cost (Variable)": "1000000",
+                "Operating Cost (Fixed)": "500000",
+                "Gross Profit less Operating Cost": "3000000",
+                "Annual Rx": "1000000",
+                "Teva GM%": "$2.50",
+                "Gross Profit per Rx": "$3.00",
+                "Operating Cost per Rx": "$1.50",
+                "Gross Profit less Operating Cost per Rx": "$1.50",
+                "Rebates/Admin Fees/Price Protection %": "0.25%",
+                "Annual Average Market Share": "10%",
+                "Exit Market Share": "5%",
+                "'+/- NMS": "4%"
             },
             "2027": {
-                "Gross Sales": "$2,00,00,000",
-                "Rebates/Admin Fees/Price": "$5,000",
-                "Co-Pay Assistance": "$1,000",
-                "Purchase Discounts": "$1,00,000",
-                "IRA": "$250,000",
-                "Medicaid URA": 0
+                "Gross Sales": "$1,80,00,000",
+                "Rebates/Admin Fees/Price": "$7,000",
+                "Co-Pay Assistance": "$1,200",
+                "Purchase Discounts": "$80,000",
+                "IRA": "$200,000",
+                "Net Sales": "2400000",
+                "Cost of Goods Sold": "210000",
+                "Royalties": "220000",
+                "Gross Profit": "4200000",
+                "Operating Cost (Variable)": "900000",
+                "Operating Cost (Fixed)": "450000",
+                "Gross Profit less Operating Cost": "2850000",
+                "Annual Rx": "950000",
+                "Teva GM%": "$2.40",
+                "Gross Profit per Rx": "$2.95",
+                "Operating Cost per Rx": "$1.42",
+                "Gross Profit less Operating Cost per Rx": "$1.53",
+                "Rebates/Admin Fees/Price Protection %": "0.28%",
+                "Annual Average Market Share": "12%",
+                "Exit Market Share": "6%",
+                "+/- NMS": "3%"
             },
             "2028": {
-                "Gross Sales": "$2,00,00,000",
-                "Rebates/Admin Fees/Price": "$5,000",
-                "Co-Pay Assistance": "$1,000",
-                "Purchase Discounts": "$1,00,000",
-                "IRA": "$250,000",
-                "Medicaid URA": 0
+                "Gross Sales": "$2,20,00,000",
+                "Rebates/Admin Fees/Price": "$6,500",
+                "Co-Pay Assistance": "$900",
+                "Purchase Discounts": "$1,10,000",
+                "IRA": "$275,000",
+                "Net Sales": "2450000",
+                "Cost of Goods Sold": "240000",
+                "Royalties": "255000",
+                "Gross Profit": "4600000",
+                "Operating Cost (Variable)": "950000",
+                "Operating Cost (Fixed)": "520000",
+                "Gross Profit less Operating Cost": "3130000",
+                "Annual Rx": "1050000",
+                "Teva GM%": "$2.52",
+                "Gross Profit per Rx": "$3.05",
+                "Operating Cost per Rx": "$1.40",
+                "Gross Profit less Operating Cost per Rx": "$1.65",
+                "Rebates/Admin Fees/Price Protection %": "0.26%",
+                "Annual Average Market Share": "11%",
+                "Exit Market Share": "5.5%",
+                "+/- NMS": "4%"
             },
             "2029": {
-                "Gross Sales": "$2,00,00,000",
-                "Rebates/Admin Fees/Price": "$5,000",
-                "Co-Pay Assistance": "$1,000",
-                "Purchase Discounts": "$1,00,000",
-                "IRA": "$250,000",
-                "Medicaid URA": 0
-            } ,
+                "Gross Sales": "$1,90,00,000",
+                "Rebates/Admin Fees/Price": "$4,800",
+                "Co-Pay Assistance": "$1,100",
+                "Purchase Discounts": "$95,000",
+                "IRA": "$220,000",
+                "Net Sales": "2300000",
+                "Cost of Goods Sold": "200000",
+                "Royalties": "230000",
+                "Gross Profit": "4100000",
+                "Operating Cost (Variable)": "890000",
+                "Operating Cost (Fixed)": "460000",
+                "Gross Profit less Operating Cost": "2750000",
+                "Annual Rx": "930000",
+                "Teva GM%": "$2.42",
+                "Gross Profit per Rx": "$2.94",
+                "Operating Cost per Rx": "$1.45",
+                "Gross Profit less Operating Cost per Rx": "$1.49",
+                "Rebates/Admin Fees/Price Protection %": "0.22%",
+                "Annual Average Market Share": "9%",
+                "Exit Market Share": "4%",
+                "+/- NMS": "5%"
+            },
             "2030": {
-                "Gross Sales": "$2,00,00,000",
-                "Rebates/Admin Fees/Price": "$5,000",
+                "Gross Sales": "$2,10,00,000",
+                "Rebates/Admin Fees/Price": "$6,000",
                 "Co-Pay Assistance": "$1,000",
-                "Purchase Discounts": "$1,00,000",
-                "IRA": "$250,000",
-                "Medicaid URA": 0
-            }  
+                "Purchase Discounts": "$1,05,000",
+                "IRA": "$260,000",
+                "Net Sales": "2500000",
+                "Cost of Goods Sold": "225000",
+                "Royalties": "250000",
+                "Gross Profit": "4400000",
+                "Operating Cost (Variable)": "970000",
+                "Operating Cost (Fixed)": "480000",
+                "Gross Profit less Operating Cost": "2950000",
+                "Annual Rx": "990000",
+                "Teva GM%": "$2.46",
+                "Gross Profit per Rx": "$2.97",
+                "Operating Cost per Rx": "$1.47",
+                "Gross Profit less Operating Cost per Rx": "$1.50",
+                "Rebates/Admin Fees/Price Protection %": "0.24%",
+                "Annual Average Market Share": "10%",
+                "Exit Market Share": "5%",
+                "+/- NMS": "4%"
+            }
         },
         "options": [
             {
                 "optionId": 1,
-                "optionDesc":"opt1",
+                "optionDesc": "opt1",
                 "years": {
                     "2026": {
                         "Deal": {
@@ -60,8 +135,30 @@
                             "Co-Pay Assistance": "$5,000",
                             "Purchase Discounts": "$2,00,00,000",
                             "IRA": "$25,00,000",
-                            "Medicaid URA": 0
-                        }
+                            "Net Sales": "2200000",
+                            "Cost of Goods Sold": "180000",
+                            "Royalties": "210000",
+                            "Gross Profit": "3900000",
+                            "Operating Cost (Variable)": "850000",
+                            "Operating Cost (Fixed)": "440000",
+                            "Gross Profit less Operating Cost": "2610000",
+                            "Annual Rx": "910000",
+                            "Teva GM%": "$2.39",
+                            "Gross Profit per Rx": "$2.91",
+                            "Operating Cost per Rx": "$1.42",
+                            "Gross Profit less Operating Cost per Rx": "$1.49",
+                            "Rebates/Admin Fees/Price Protection %": "0.23%",
+                            "Annual Average Market Share": "8%",
+                            "Exit Market Share": "3%",
+                            "+/- NMS": "5%"
+                        },
+                        "NMS": "28.10%",
+                        "Gross Sales $ Value for Each Rebate %": "$89980080",
+                        "$$$ Value for Each MS %": "25%",
+                        "Break-Even Rebate vs No Deal":"23%",
+                        "Break-Even Addt'l Rebate vs No Deal":"23%",
+                        "Break-Even Share vs No Deal":"20%",
+                        "1% Rebate Value": "$2850000"
                     },
                     "2027": {
                         "Deal": {
@@ -70,8 +167,30 @@
                             "Co-Pay Assistance": "$5,000",
                             "Purchase Discounts": "$2,00,00,000",
                             "IRA": "$25,00,000",
-                            "Medicaid URA": 0
-                        }
+                            "Net Sales": "2200000",
+                            "Cost of Goods Sold": "180000",
+                            "Royalties": "210000",
+                            "Gross Profit": "3900000",
+                            "Operating Cost (Variable)": "850000",
+                            "Operating Cost (Fixed)": "440000",
+                            "Gross Profit less Operating Cost": "2610000",
+                            "Annual Rx": "910000",
+                            "Teva GM%": "$2.39",
+                            "Gross Profit per Rx": "$2.91",
+                            "Operating Cost per Rx": "$1.42",
+                            "Gross Profit less Operating Cost per Rx": "$1.49",
+                            "Rebates/Admin Fees/Price Protection %": "0.23%",
+                            "Annual Average Market Share": "8%",
+                            "Exit Market Share": "3%",
+                            "+/- NMS": "5%"
+                        },
+                        "NMS": "28.10%",
+                        "Gross Sales $ Value for Each Rebate %": "$89980080",
+                        "$$$ Value for Each MS %": "25%",
+                        "Break-Even Rebate vs No Deal":"23%",
+                        "Break-Even Addt'l Rebate vs No Deal":"23%",
+                        "Break-Even Share vs No Deal":"20%",
+                        "1% Rebate Value": "$2850000"
                     },
                     "2028": {
                         "Deal": {
@@ -80,8 +199,30 @@
                             "Co-Pay Assistance": "$5,000",
                             "Purchase Discounts": "$2,00,00,000",
                             "IRA": "$25,00,000",
-                            "Medicaid URA": 0
-                        }
+                            "Net Sales": "2350000",
+                            "Cost of Goods Sold": "215000",
+                            "Royalties": "235000",
+                            "Gross Profit": "4300000",
+                            "Operating Cost (Variable)": "910000",
+                            "Operating Cost (Fixed)": "470000",
+                            "Gross Profit less Operating Cost": "2920000",
+                            "Annual Rx": "970000",
+                            "Teva GM%": "$2.48",
+                            "Gross Profit per Rx": "$2.95",
+                            "Operating Cost per Rx": "$1.42",
+                            "Gross Profit less Operating Cost per Rx": "$1.53",
+                            "Rebates/Admin Fees/Price Protection %": "0.25%",
+                            "Annual Average Market Share": "10%",
+                            "Exit Market Share": "5%",
+                            "+/- NMS": "4%"
+                        },
+                        "NMS": "28.10%",
+                        "Gross Sales $ Value for Each Rebate %": "$89980080",
+                        "$$$ Value for Each MS %": "25%",
+                        "Break-Even Rebate vs No Deal":"23%",
+                        "Break-Even Addt'l Rebate vs No Deal":"23%",
+                        "Break-Even Share vs No Deal":"20%",
+                        "1% Rebate Value": "$2850000"
                     },
                     "2029": {
                         "Deal": {
@@ -90,8 +231,30 @@
                             "Co-Pay Assistance": "$5,000",
                             "Purchase Discounts": "$2,00,00,000",
                             "IRA": "$25,00,000",
-                            "Medicaid URA": 0
-                        }
+                            "Net Sales": "2100000",
+                            "Cost of Goods Sold": "170000",
+                            "Royalties": "200000",
+                            "Gross Profit": "3700000",
+                            "Operating Cost (Variable)": "830000",
+                            "Operating Cost (Fixed)": "420000",
+                            "Gross Profit less Operating Cost": "2450000",
+                            "Annual Rx": "890000",
+                            "Teva GM%": "$2.38",
+                            "Gross Profit per Rx": "$2.88",
+                            "Operating Cost per Rx": "$1.41",
+                            "Gross Profit less Operating Cost per Rx": "$1.47",
+                            "Rebates/Admin Fees/Price Protection %": "0.22%",
+                            "Annual Average Market Share": "7%",
+                            "Exit Market Share": "4%",
+                            "+/- NMS": "3%"
+                        },
+                        "NMS": "28.10%",
+                        "Gross Sales $ Value for Each Rebate %": "$89980080",
+                        "$$$ Value for Each MS %": "25%",
+                        "Break-Even Rebate vs No Deal":"23%",
+                        "Break-Even Addt'l Rebate vs No Deal":"23%",
+                        "Break-Even Share vs No Deal":"20%",
+                        "1% Rebate Value": "$2850000"
                     },
                     "2030": {
                         "Deal": {
@@ -100,14 +263,36 @@
                             "Co-Pay Assistance": "$5,000",
                             "Purchase Discounts": "$2,00,00,000",
                             "IRA": "$25,00,000",
-                            "Medicaid URA": 0
-                        }
+                            "Net Sales": "2600000",
+                            "Cost of Goods Sold": "250000",
+                            "Royalties": "265000",
+                            "Gross Profit": "4800000",
+                            "Operating Cost (Variable)": "990000",
+                            "Operating Cost (Fixed)": "530000",
+                            "Gross Profit less Operating Cost": "3280000",
+                            "Annual Rx": "1080000",
+                            "Teva GM%": "$2.54",
+                            "Gross Profit per Rx": "$3.09",
+                            "Operating Cost per Rx": "$1.40",
+                            "Gross Profit less Operating Cost per Rx": "$1.69",
+                            "Rebates/Admin Fees/Price Protection %": "0.27%",
+                            "Annual Average Market Share": "13%",
+                            "Exit Market Share": "6%",
+                            "+/- NMS": "4%"
+                        },
+                        "NMS": "28.10%",
+                        "Gross Sales $ Value for Each Rebate %": "$89980080",
+                        "$$$ Value for Each MS %": "25%",
+                        "Break-Even Rebate vs No Deal":"23%",
+                        "Break-Even Addt'l Rebate vs No Deal":"23%",
+                        "Break-Even Share vs No Deal":"20%",
+                        "1% Rebate Value": "$2850000"
                     }
                 }
             },
             {
                 "optionId": 2,
-                "optionDesc":"opt2",
+                "optionDesc": "opt2",
                 "years": {
                     "2026": {
                         "Deal": {
@@ -116,8 +301,30 @@
                             "Co-Pay Assistance": "$5,000",
                             "Purchase Discounts": "$2,00,00,000",
                             "IRA": "$25,00,000",
-                            "Medicaid URA": 0
-                        }
+                            "Net Sales": "2650000",
+                            "Cost of Goods Sold": "260000",
+                            "Royalties": "270000",
+                            "Gross Profit": "4900000",
+                            "Operating Cost (Variable)": "1020000",
+                            "Operating Cost (Fixed)": "540000",
+                            "Gross Profit less Operating Cost": "3340000",
+                            "Annual Rx": "1100000",
+                            "Teva GM%": "$2.55",
+                            "Gross Profit per Rx": "$3.10",
+                            "Operating Cost per Rx": "$1.42",
+                            "Gross Profit less Operating Cost per Rx": "$1.68",
+                            "Rebates/Admin Fees/Price Protection %": "0.29%",
+                            "Annual Average Market Share": "14%",
+                            "Exit Market Share": "7%",
+                            "+/- NMS": "3%"
+                        },
+                        "NMS": "28.10%",
+                        "Gross Sales $ Value for Each Rebate %": "$89980080",
+                        "$$$ Value for Each MS %": "25%",
+                        "Break-Even Rebate vs No Deal":"23%",
+                        "Break-Even Addt'l Rebate vs No Deal":"23%",
+                        "Break-Even Share vs No Deal":"20%",
+                        "1% Rebate Value": "$2850000"
                     },
                     "2027": {
                         "Deal": {
@@ -126,8 +333,30 @@
                             "Co-Pay Assistance": "$5,000",
                             "Purchase Discounts": "$2,00,00,000",
                             "IRA": "$25,00,000",
-                            "Medicaid URA": 0
-                        }
+                            "Net Sales": "2650000",
+                            "Cost of Goods Sold": "260000",
+                            "Royalties": "270000",
+                            "Gross Profit": "4900000",
+                            "Operating Cost (Variable)": "1020000",
+                            "Operating Cost (Fixed)": "540000",
+                            "Gross Profit less Operating Cost": "3340000",
+                            "Annual Rx": "1100000",
+                            "Teva GM%": "$2.55",
+                            "Gross Profit per Rx": "$3.10",
+                            "Operating Cost per Rx": "$1.42",
+                            "Gross Profit less Operating Cost per Rx": "$1.68",
+                            "Rebates/Admin Fees/Price Protection %": "0.29%",
+                            "Annual Average Market Share": "14%",
+                            "Exit Market Share": "7%",
+                            "+/- NMS": "3%"
+                        },
+                        "NMS": "28.10%",
+                        "Gross Sales $ Value for Each Rebate %": "$89980080",
+                        "$$$ Value for Each MS %": "25%",
+                        "Break-Even Rebate vs No Deal":"23%",
+                        "Break-Even Addt'l Rebate vs No Deal":"23%",
+                        "Break-Even Share vs No Deal":"20%",
+                        "1% Rebate Value": "$2850000"
                     },
                     "2028": {
                         "Deal": {
@@ -136,8 +365,30 @@
                             "Co-Pay Assistance": "$5,000",
                             "Purchase Discounts": "$2,00,00,000",
                             "IRA": "$25,00,000",
-                            "Medicaid URA": 0
-                        }
+                            "Net Sales": "2650000",
+                            "Cost of Goods Sold": "260000",
+                            "Royalties": "270000",
+                            "Gross Profit": "4900000",
+                            "Operating Cost (Variable)": "1020000",
+                            "Operating Cost (Fixed)": "540000",
+                            "Gross Profit less Operating Cost": "3340000",
+                            "Annual Rx": "1100000",
+                            "Teva GM%": "$2.55",
+                            "Gross Profit per Rx": "$3.10",
+                            "Operating Cost per Rx": "$1.42",
+                            "Gross Profit less Operating Cost per Rx": "$1.68",
+                            "Rebates/Admin Fees/Price Protection %": "0.29%",
+                            "Annual Average Market Share": "14%",
+                            "Exit Market Share": "7%",
+                            "+/- NMS": "3%"
+                        },
+                        "NMS": "28.10%",
+                        "Gross Sales $ Value for Each Rebate %": "$89980080",
+                        "$$$ Value for Each MS %": "25%",
+                        "Break-Even Rebate vs No Deal":"23%",
+                        "Break-Even Addt'l Rebate vs No Deal":"23%",
+                        "Break-Even Share vs No Deal":"20%",
+                        "1% Rebate Value": "$2850000"
                     }
                 }
             }
