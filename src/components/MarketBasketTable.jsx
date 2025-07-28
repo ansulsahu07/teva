@@ -1,16 +1,39 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Form, Table } from "react-bootstrap";
 // import { useNavigate } from "react-router-dom";
 import { MKT_BASKET_GROWTH_ASSUMPTIONS, MKT_BASKET } from "../constants/ui";
 // import { DEAL_ROUTES } from "../constants/routes";
+import useDealFormStore from "../store/useDealFormStore";
+import ToastMessageSuccess from "./ToastMessageSuccess";
 
-const MarketBasketTable = ({ initialGrowthData, onBasketUpdate }) => {
-  const [growthData, setGrowthData] = useState(initialGrowthData || []);
+const MarketBasketTable = ({
+  initialGrowthData,
+  onBasketUpdate,
+  isFirstSubmit,
+  setIsFirstSubmit,
+  setTableCount,
+  updateMarketData,
+}) => {
+  const [growthData, setGrowthData] = useState([]);
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
-
   const [initialValue, setInitialValue] = useState("");
+  const [showToast, setShowToast] = useState(false);
 
   // const navigate = useNavigate();
+
+  const { setMarketBasketRecords, syncOptionsWithMarketBasket } = useDealFormStore();
+
+  useEffect(() => {
+    if (initialGrowthData && initialGrowthData.length > 0) {
+      setGrowthData(initialGrowthData);
+
+      const firstBasket = initialGrowthData[0]?.marketBasket;
+      if (firstBasket && !isNaN(firstBasket)) {
+        setInitialValue(firstBasket);
+        setIsSubmitDisabled(false);
+      }
+    }
+  }, [initialGrowthData]);
 
   const calculateMarketBasket = () => {
     const firstValue = parseFloat(initialValue);
@@ -31,10 +54,19 @@ const MarketBasketTable = ({ initialGrowthData, onBasketUpdate }) => {
 
     setGrowthData(updatedRecords);
     setIsSubmitDisabled(false);
+
+    console.log("Updated Records", updatedRecords)
   };
 
   const submitMarketBasketData = () => {
-    onBasketUpdate(growthData);
+    setMarketBasketRecords(growthData)
+    onBasketUpdate(growthData); // updates masterMarketData in store
+    setShowToast(true);
+
+    if (!isFirstSubmit) {
+      setIsFirstSubmit(true);
+      setTableCount((prev) => prev + 2);
+    }
   };
 
   // console.log("MarketBasketTable growthData", growthData);
@@ -75,7 +107,14 @@ const MarketBasketTable = ({ initialGrowthData, onBasketUpdate }) => {
                   <Form.Control
                     type="number"
                     value={initialValue}
-                    onChange={(e) => setInitialValue(e.target.value)}
+                    min="1"
+                    onPaste={() => handlePasteEvent(1)}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (value >= 1) {
+                        setInitialValue(value);
+                      }
+                    }}
                   />
                 </td>
               ) : (
@@ -110,6 +149,11 @@ const MarketBasketTable = ({ initialGrowthData, onBasketUpdate }) => {
         >
           SUBMIT
         </Button>
+        <ToastMessageSuccess
+          show={showToast}
+          message="Market Basket Submitted Successfully!"
+          onClose={() => setShowToast(false)}
+        />
       </div>
     </div>
   );
