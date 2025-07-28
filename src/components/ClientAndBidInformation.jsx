@@ -52,8 +52,9 @@ const ClientAndBidInformation = () => {
   const [selectDealId, setSelectDealId] = useState("");
   const [isGetData, setIsGetData] = useState(false);
   const [formData, setFormData] = useState({});
-  const [isSubmitBtnClicked, setIsSubmitBtnClicked] = useState(false);
+  // const [isSubmitBtnClicked, setIsSubmitBtnClicked] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [showSpecialCharWarning, setShowSpecialCharWarning] = useState(false);
   // const [isFirstSubmit, setIsFirstSubmit] = useState(false);
 
   useEffect(() => {
@@ -129,15 +130,22 @@ const ClientAndBidInformation = () => {
 
   const handleNewDeal = () => {
     const newId = `DEAL-${Date.now()}`;
+    resetAllData(); // clear all fields
     updateField("dealId", newId);
+    setNewDealId(true);
+    setIsGetData(false);
+    setSelectDealId("");
+    setFormData({});
+    setIsFirstSubmit(false);
   };
 
   const handleDealData = (id) => {
-    setIsGetData(true);
-    const selectedItem = dealIdData.find(
-      (item) => item.dealId.toString() === id
-    );
+    const selectedItem = dealIdData.find((item) => item.dealId.toString() === id);
     if (selectedItem) {
+      setIsGetData(true);
+      setNewDealId(false);
+      updateField("dealId", selectedItem.dealId);
+      updateField("dealDescription", selectedItem.deal_name);
       updateField("brand", selectedItem.brand);
       updateField("account", selectedItem.account);
       updateField("channel", selectedItem.channel);
@@ -149,6 +157,7 @@ const ClientAndBidInformation = () => {
       updateField("lookbackEndDate", selectedItem.lookback_end_date);
 
       setFormData({
+        dealId: selectedItem.dealId,
         dealDescription: selectedItem.deal_name,
         brand: selectedItem.brand,
         account: selectedItem.account,
@@ -160,10 +169,12 @@ const ClientAndBidInformation = () => {
         lookback_start_date: lookbackStartDate,
         lookback_end_date: lookbackEndDate,
       });
+      setIsFirstSubmit(false);
+      setIsGetData(true);
     }
   };
 
-  const isFormComplete = dealId && dealDescription && brand && account && channel && contractStart && contractLength;
+  const isFormComplete = dealId && dealDescription && brand && account && channel && contractStart && contractLength && lookBackPeriod && lookbackStartDate && lookbackEndDate && contractEnd && contractStart <= contractEnd && lookbackStartDate <= lookbackEndDate;
 
   const submitDealForm = () => {
     const contractTermInQuarter = getQuarterBetweenDates(
@@ -238,6 +249,68 @@ const ClientAndBidInformation = () => {
     }
   };
 
+  const nextFromGetData = () => {
+    if (isGetData) {
+      // Populate store data for next page from `formData`
+      const contractTermInQuarter = getQuarterBetweenDates(
+        formData.contractStart,
+        formData.contractEnd
+      );
+      const lookbackTermInQuarter = getQuarterBetweenDates(
+        formData.lookback_start_date,
+        formData.lookback_end_date
+      );
+
+      updateField("contractTermPeriods", contractTermInQuarter);
+      updateField("lookbackTermPeriods", lookbackTermInQuarter);
+
+      updateField(
+        "contractPeriodInQuarter",
+        convertQuarter(contractTermInQuarter)
+      );
+      updateField(
+        "lookbackPeriodInQuarter",
+        convertQuarter(lookbackTermInQuarter)
+      );
+      updateField(
+        "totalPeriodInQuarter",
+        convertQuarter([...lookbackTermInQuarter, ...contractTermInQuarter])
+      );
+
+      const markettRecords = [];
+      const todayStr = new Date().toISOString().split("T")[0];
+      [...lookbackTermInQuarter, ...contractTermInQuarter].forEach(qtr => {
+        markettRecords.push({
+          quarter: qtr,
+          growth: 1.35,
+          marketBasket: null,
+          marketTrx: 0,
+          marketShare: "",
+          dealId: formData.dealId || dealId,
+          dealDescription: formData.dealDescription || dealDescription,
+          account: formData.account,
+          channel: formData.channel,
+          brand: formData.brand,
+          effective_start_date: formData.lookback_start_date,
+          effective_end_date: formData.contractEnd,
+          modified_date: todayStr,
+          modified_by: '',
+          created_date: todayStr,
+          created_by: ''
+        });
+      });
+      setMarketBasketRecords(markettRecords);
+      setIsFirstSubmit(true);
+    }
+    console.log("Next button clicked, Store Data", useDealFormStore.getState());
+  }
+
+  useEffect(() => {
+    console.log("isFirstSubmit changed:", isFirstSubmit);
+    console.log("isGetData changed:", isGetData);
+    }, [isFirstSubmit, isGetData]);
+
+
   const resetAllData = useDealFormStore((state) => state.resetStore);
 
   return (
@@ -262,11 +335,9 @@ const ClientAndBidInformation = () => {
           </Col>
           <Col sm={2}>
             <Button
-              disabled={selectDealId}
-              style={{ cursor: !selectDealId ? "pointer" : "not-allowed" }}
+              // disabled={selectDealId}
+              // style={{ cursor: !selectDealId ? "pointer" : "not-allowed" }}
               onClick={() => {
-                setNewDealId(true);
-                resetAllData();
                 handleNewDeal();
               }}
             >
@@ -283,10 +354,12 @@ const ClientAndBidInformation = () => {
           <Col sm={6}>
             <Form.Select
               value={selectDealId}
-              disabled={dealId}
-              style={{ cursor: dealId ? "not-allowed" : "" }}
+              // disabled={dealId && newDealId}
+              // style={{ cursor: !!dealId && newDealId ? "not-allowed" : "" }}
               className="bg-light"
-              onChange={(e) => setSelectDealId(e.target.value)}
+              onChange={(e) => {
+                setSelectDealId(e.target.value)
+              }}
             >
               <option value="">Select Deal ID</option>
               {dealIdData.map((option) => (
@@ -314,13 +387,38 @@ const ClientAndBidInformation = () => {
           <Col sm={8}>
             <Form.Control
               type="text"
+              maxLength={50}
               value={isGetData ? formData.dealDescription : dealDescription}
               disabled={isGetData}
               style={{ cursor: isGetData ? "not-allowed" : "" }}
               readOnly={isGetData}
+              onKeyDown={(e) => {
+                const allowed = /^[a-zA-Z0-9 ]$/;
+                if (
+                  e.key.length === 1 &&
+                  !allowed.test(e.key)
+                ) {
+                  e.preventDefault();
+                  setShowSpecialCharWarning(true);
+                  setTimeout(() => setShowSpecialCharWarning(false), 2000);
+                }
+              }}
+              onPaste={(e) => {
+                const paste = e.clipboardData.getData("text");
+                if (/[^a-zA-Z0-9 ]/.test(paste)) {
+                  e.preventDefault();
+                  setShowSpecialCharWarning(true);
+                  setTimeout(() => setShowSpecialCharWarning(false), 2000);
+                }
+              }}
               onChange={(e) => updateField("dealDescription", e.target.value)}
               placeholder="Deal Description"
             />
+            {showSpecialCharWarning && (
+              <div style={{ color: "red", fontSize: "0.9rem", marginTop: "4px" }}>
+                Special characters are not allowed.
+              </div>
+            )}
           </Col>
         </Form.Group>
 
@@ -485,6 +583,7 @@ const ClientAndBidInformation = () => {
               }
               type="text"
               disabled={isGetData}
+              readOnly
               style={{ cursor: isGetData ? "not-allowed" : null }}
             />
           </Col>
@@ -492,6 +591,7 @@ const ClientAndBidInformation = () => {
             <Form.Control
               value={isGetData ? formData.lookback_end_date : lookbackEndDate}
               disabled={isGetData}
+              readOnly
               style={{ cursor: isGetData ? "not-allowed" : null }}
               type="text"
             />
@@ -510,9 +610,9 @@ const ClientAndBidInformation = () => {
           >
             <Button
               variant="success"
-              className={`vi-btn-solid-magenta vi-btn-solid ${isGetData || !newDealId ? "btn-blocked" : ""
-                }`}
-              disabled={!isFormComplete}
+              // className={`vi-btn-solid-magenta vi-btn-solid ${!isFormComplete || isGetData ? "btn-blocked" : ""}`}
+              className={`vi-btn-solid-magenta vi-btn-solid`}
+              disabled={!isFormComplete || isGetData}
               onClick={() => {
                 submitDealForm();
                 setIsFirstSubmit(true);
@@ -527,10 +627,12 @@ const ClientAndBidInformation = () => {
             />
             <Button
               variant="success"
-              disabled={!isFirstSubmit}
-              className={`vi-btn-solid-magenta vi-btn-solid ${!isSubmitBtnClicked && !isGetData ? "btn-blocked" : ""
-                }`}
-              onClick={() => navigate(DEAL_ROUTES.UTILIZATIONANDMSDATA.PATH)}
+              className={`vi-btn-solid-magenta vi-btn-solid`}
+              disabled={!isGetData && !isFirstSubmit} // enable if Submit done or Get Data used
+              onClick={() => {
+                nextFromGetData();
+                navigate(DEAL_ROUTES.UTILIZATIONANDMSDATA.PATH);
+              }}
             >
               Next
             </Button>
