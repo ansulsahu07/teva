@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import financialData from '../../data/financialData.json';
 import { Container, Table, Spinner, Button } from 'react-bootstrap';
 import { DEAL_ROUTES } from '../constants/routes';
-import { financialTableMetrics } from '../constants/ui';
+import { generateFinancialRows } from '../utils/generateFinancialRows';
 import ExportFinancialData from './ExportFinancialData';
 
 export const FinancialTable = ({ optionId, dealId }) => {
-    console.log("FinancialTable", optionId, dealId);
     const navigate = useNavigate();
     const [tableData, setTableData] = useState({});
     const [selectedDeal, setSelectedDeal] = useState(null);
@@ -21,25 +20,9 @@ export const FinancialTable = ({ optionId, dealId }) => {
 
         setSelectedDeal(deal);
         setTableData(option.years);
-        console.log(deal,option);
     }, [optionId, dealId]);
 
-    const parseCurrency = (val) => {
-        if (!val) return 0;
-        const isPercent = typeof val === 'string' && val.includes('%');
-        const cleaned = val.toString().replace(/[$,%]/g, '');
-        const num = Number(cleaned);
-        return isPercent ? num / 100 : num;
-    };
-
-    const getFormattedAmount = (val, original) => {
-        if (original?.includes('%')) return `${(val * 100).toFixed(2)}%`;
-        return val.toLocaleString('en-US');
-    };
-
-    const yearKeys = Object.keys(tableData);
-
-    if (!optionId || !dealId || !selectedDeal || yearKeys.length === 0) {
+    if (!optionId || !dealId || !selectedDeal || Object.keys(tableData).length === 0) {
         return (
             <Container className="text-center my-5">
                 <Spinner animation="border" variant="primary" />
@@ -47,18 +30,24 @@ export const FinancialTable = ({ optionId, dealId }) => {
             </Container>
         );
     }
+
+    const { rows, yearKeys } = generateFinancialRows(tableData, selectedDeal);
+    const columnSpan = 3;
+
     return (
         <>
             <Table striped bordered responsive className="mt-4 text-center market-table">
                 <thead>
                     <tr style={{ backgroundColor: '#e6f7ff' }}>
-                        <th rowSpan="2">Deal Financials</th>
-                        {yearKeys.map(year => <th key={year} colSpan="3">{year}</th>)}
-                        <th colSpan="3">Total Contract Period</th>
+                        <th rowSpan={2} style={{ verticalAlign: 'middle', textAlign: 'center' }}>{rows[0][0]}</th>
+                        {yearKeys.map((year, idx) => (
+                            <th key={`year-${idx}`} colSpan={columnSpan} style={{ textAlign: 'center' }}>{year}</th>
+                        ))}
+                        <th colSpan={columnSpan} style={{ textAlign: 'center' }}>Total Contract Period</th>
                     </tr>
                     <tr style={{ backgroundColor: '#f0f8ff' }}>
-                        {yearKeys.map(year => (
-                            <React.Fragment key={year}>
+                        {yearKeys.map((_, idx) => (
+                            <React.Fragment key={`subheader-${idx}`}>
                                 <th>Deal</th>
                                 <th>No Deal</th>
                                 <th>Deal vs No Deal</th>
@@ -70,74 +59,21 @@ export const FinancialTable = ({ optionId, dealId }) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {financialTableMetrics.map((item, idx) => {
-                        if (item.isSection) {
-                            return (
-                                <tr key={idx} style={{ backgroundColor: '#f6f6f6' }}>
-                                    <td colSpan={yearKeys.length * 3 + 4} style={{ fontWeight: 'bold' }}>{item.label}</td>
-                                </tr>
-                            );
-                        }
-
-                        let totalDeal = 0, totalNoDeal = 0;
-
-                        const yearData = yearKeys.map(year => {
-                            const flatVal = tableData[year]?.[item];
-                            if (flatVal !== undefined && typeof flatVal !== 'object') {
-                                const parsed = parseCurrency(flatVal);
-                                return { flat: true, val: parsed, original: flatVal };
-                            }
-
-                            const dealRaw = tableData[year]?.Deal?.[item] || '$0';
-                            const noDealRaw = selectedDeal['No Deal']?.[year]?.[item] || '$0';
-
-                            const dealVal = parseCurrency(dealRaw);
-                            const noDealVal = parseCurrency(noDealRaw);
-                            const diff = dealVal - noDealVal;
-
-                            totalDeal += dealVal;
-                            totalNoDeal += noDealVal;
-
-                            return {
-                                flat: false,
-                                deal: dealVal,
-                                noDeal: noDealVal,
-                                diff: diff,
-                                originalDeal: dealRaw,
-                                originalNoDeal: noDealRaw
-                            };
-                        });
-
-                        const totalDiff = totalDeal - totalNoDeal;
-
-                        return (
-                            <tr key={item}>
-                                <td>{item}</td>
-                                {yearData.map((data, i) => (
-                                    data.flat ? (
-                                        <td colSpan={3} key={`${item}-flat-${i}`} className="fw-bold">
-                                            {getFormattedAmount(data.val, data.original)}
-                                        </td>
-                                    ) : (
-                                        <React.Fragment key={`${item}-deal-${i}`}>
-                                            <td>{getFormattedAmount(data.deal, data.originalDeal)}</td>
-                                            <td>{getFormattedAmount(data.noDeal, data.originalNoDeal)}</td>
-                                            <td>{getFormattedAmount(data.diff)}</td>
-                                        </React.Fragment>
-                                    )
-                                ))}
-                                {yearData[0].flat ? (
-                                    <td colSpan={3}>—</td>
-                                ) : (
-                                    <>
-                                        <td style={{ backgroundColor: '#eafbea', fontWeight: 'bold' }}>{getFormattedAmount(totalDeal)}</td>
-                                        <td style={{ backgroundColor: '#fce4ec', fontWeight: 'bold' }}>{getFormattedAmount(totalNoDeal)}</td>
-                                        <td style={{ backgroundColor: '#fff3cd', fontWeight: 'bold' }}>{getFormattedAmount(totalDiff)}</td>
-                                    </>
-                                )}
-                            </tr>
-                        );
-                    })}
+                    {rows.slice(2).map((rowObj, rowIndex) => (
+                        <tr key={`row-${rowIndex}`}>
+                            {rowObj.cells.map((cell, cellIndex) => (
+                                <td
+                                    key={`cell-${rowIndex}-${cellIndex}`}
+                                    style={{
+                                        fontWeight: rowObj.isSection ? 'bold' : 'normal',
+                                        textAlign: cellIndex > 0 ? 'right' : 'left'
+                                    }}
+                                >
+                                    {Number.isFinite(cell) ? cell.toLocaleString('en-US') : cell}
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
                 </tbody>
             </Table>
 
@@ -146,7 +82,8 @@ export const FinancialTable = ({ optionId, dealId }) => {
                     onClick={() => navigate(DEAL_ROUTES.DEAL_ANALYSIS_MODEL.PATH)}>
                     BACK
                 </Button>
-                <Button variant="success" className="vi-btn-solid-magenta vi-btn-solid" size="sm" onClick={() => ExportFinancialData(financialData)}>
+                <Button variant="success" className="vi-btn-solid-magenta vi-btn-solid" size="sm"
+                    onClick={() => ExportFinancialData(tableData, selectedDeal)}>
                     Export to Excel
                 </Button>
             </div>

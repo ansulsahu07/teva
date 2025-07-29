@@ -341,7 +341,7 @@ const DealAnalysisTable = ({ optionProps }) => {
     );
 
     if (hasEmptyField) {
-      alert("⚠️ Please fill in all required fields (rebate %) before submitting.");
+      alert("Please fill in all required fields before submitting.");
       return;
     }
 

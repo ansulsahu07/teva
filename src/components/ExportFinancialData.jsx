@@ -1,81 +1,56 @@
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import {financialTableMetrics} from "../constants/ui";
-const isPercentage = (val) =>
-  typeof val === "string" && val.trim().endsWith("%");
+import { generateFinancialRows } from "../utils/generateFinancialRows";
 
-const isCurrency = (val) =>
-  typeof val === "string" && val.trim().startsWith("$");
-
-const parseValue = (val) => {
-  if (typeof val === "number") return { value: val, format: '"$"#,##0' };
-
-  if (isPercentage(val)) {
-    const number = parseFloat(val.replace("%", "").trim());
-    return isNaN(number)
-      ? { value: val, format: null }
-      : { value: number / 100, format: "0.00%" };
-  }
-
-  if (isCurrency(val)) {
-    const number = parseFloat(val.replace("$", "").trim());
-    return isNaN(number)
-      ? { value: val, format: null }
-      : { value: number, format: '"$"#,##0' };
-  }
-
-  const number = parseFloat(val);
-  if (!isNaN(number)) return { value: number, format: '"$"#,##0' };
-
-  return { value: val, format: null };
-};
-
-const financialMetrics = financialTableMetrics;
-
-const ExportFinancialData = async (tableData, fileName = "Financial_Comparison.xlsx") => {
+const ExportFinancialData = async (tableData = {}, deal = {}, fileName = "Financial_Comparison.xlsx") => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Financial Comparison");
 
-  worksheet.columns = [
-    { header: "Label", key: "label", width: 40 },
-    { header: "Deal", key: "deal", width: 20 },
-    { header: "No Deal", key: "nodeal", width: 20 },
-    { header: "Deal vs No Deal", key: "dealvsnodeal", width: 25 },
-  ];
+  const { rows, yearKeys } = generateFinancialRows(tableData, deal);
 
-  worksheet.getRow(1).font = { bold: true };
+  rows.forEach((rowObj, rowIndex) => {
+    const addedRow = worksheet.addRow(rowObj.cells);
 
-  financialMetrics.forEach((metric) => {
-    const label = typeof metric === "string" ? metric : metric.label;
-    const isSection = typeof metric === "object" && metric.isSection;
-
-    const row = worksheet.addRow({ label });
-
-    if (isSection) {
-      row.font = { bold: true };
-      return;
-    }
-
-    const value = tableData[label];
-    if (!value) return;
-
-    const isFlat = "val" in value && !("deal" in value) && !("nodeal" in value);
-
-    if (isFlat) {
-      const { value: parsedVal, format } = parseValue(value.val);
-      const cell = row.getCell(2);
-      cell.value = parsedVal;
-      if (format) cell.numFmt = format;
-      row.font = { bold: true, color: { argb: "FF0070C0" } };
+    if (rowIndex === 0 || rowIndex === 1) {
+      addedRow.eachCell((cell) => {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: rowIndex === 0 ? "e6f7ff" : "f0f8ff" }
+        };
+      });
+    } else if (rowObj.isSection) {
+      addedRow.eachCell((cell, colIndex) => {
+        cell.font = { bold: true };
+        if (colIndex > 1) {
+          cell.alignment = { horizontal: "right" };
+        }
+      });
     } else {
-      ["deal", "nodeal", "dealvsnodeal"].forEach((key, idx) => {
-        const raw = value[key];
-        const cell = row.getCell(idx + 2);
-        const { value: parsedVal, format } = parseValue(raw);
-        cell.value = parsedVal;
-        if (format) cell.numFmt = format;
+      addedRow.eachCell((cell, colIndex) => {
+        if (colIndex > 1) {
+          cell.alignment = { horizontal: "right" };
+        }
       });
     }
+  });
+
+  // Merge year headers
+  let colIndex = 2;
+  [...yearKeys, "Total Contract Period"].forEach(() => {
+    worksheet.mergeCells(1, colIndex, 1, colIndex + 2);
+    colIndex += 3;
+  });
+
+  worksheet.columns.forEach((col) => {
+    let maxLength = 10;
+    col.eachCell?.((cell) => {
+      const val = cell.value ? cell.value.toString() : "";
+      maxLength = Math.max(maxLength, val.length);
+    });
+    col.width = maxLength + 2;
   });
 
   const buffer = await workbook.xlsx.writeBuffer();
