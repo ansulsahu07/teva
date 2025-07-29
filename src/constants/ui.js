@@ -26,7 +26,6 @@ export const CHANNEL_LIST = [
   "Specialty",
   "Medical Commercial",
 ];
-// export const API_BASE_URL = 'https://example.com/api';
 export const API_ENDPOINT = {
   // Page1
   fetchNewDealId: '/fetch-new-deal-id',

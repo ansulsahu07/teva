@@ -7,7 +7,7 @@ import MarketBasketTable from "./MarketBasketTable";
 import MarketOptionTable from "./MarketOptionTable";
 import NationalMarketShareTable from "./NationalMarketShareTable";
 import ToastMessageSuccess from "./ToastMessageSuccess";
-
+import { convertQuarter } from "../utils/utils";
 
 const forcastData = {
   2023: 21,
@@ -20,6 +20,8 @@ const forcastData = {
   2030: 29,
 };
 
+const todayDate = new Date().toISOString().split('T')[0];
+
 const UtilizationAndMSData = () => {
   const {
     masterMarketData,
@@ -31,13 +33,15 @@ const UtilizationAndMSData = () => {
     updateNoDealOption,
     setNationalMSForcast,
     setMarketBasketRecords,
-    syncOptionsWithMarketBasket
+    syncOptionsWithMarketBasket,
+    lookBackPeriod
   } = useDealFormStore();
   const [marketData, setMarketData] = useState([]);
   const [isFirstSubmit, setIsFirstSubmit] = useState(false);
   const [tableCount, setTableCount] = useState(0);
   const [isFinalSubmit, setIsFinalSubmit] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
+  const [showSpecialCharWarning, setShowSpecialCharWarning] = useState(false);
 
   const navigate = useNavigate();
 
@@ -62,11 +66,10 @@ const UtilizationAndMSData = () => {
       });
       addOption({
         optionId: generateUniqueOptionId(),
-        optionDesc: "No-Deal Option",
+        optionDesc: "",
         noDeal: "Y",
         optionData: cloned,
       });
-      setTableCount((prev) => prev + 2);
       setIsFirstSubmit(true);
     }
   };
@@ -78,8 +81,6 @@ const UtilizationAndMSData = () => {
   }));
 
   const addOptionTable = () => {
-    setTableCount((prev) => prev + 1);
-    console.log(tableCount);
     if (options.length < 10) {
       addOption({
         optionId: generateUniqueOptionId(),
@@ -87,6 +88,7 @@ const UtilizationAndMSData = () => {
         noDeal: "N",
         optionData: clonedData,
       });
+      setTableCount((prev) => prev + 1);
     }
   };
 
@@ -99,7 +101,7 @@ const UtilizationAndMSData = () => {
   });
 
   const handleSubmitShareData = () => {
-    console.log("options", options);
+    console.log("options 1", options);
     const hasEmptyShareData = options.some((opt) =>
       opt.optionData.some(
         (item) => String(item.marketShare || "").trim() === ""
@@ -118,6 +120,29 @@ const UtilizationAndMSData = () => {
     if (hasEmptyShareData) {
       alert("Some Market Share field is empty");
     } else {
+      const payload = options.map(optionItem => ({
+          options: optionItem.optionData.map((item) => ({
+            dealId: item.dealId,
+            account: item.account,
+            channel: item.channel,
+            period: convertQuarter(item.quarter),
+            lookback_period: lookBackPeriod,
+            brand: item.brand,
+            option: optionItem.optionId,
+            option_description: optionItem.optionDesc,
+            no_deal: optionItem.noDeal,
+            deal_market_trx: item.marketTrx,
+            total_market_basket: item.marketBasket,
+            deal_market_share: item.marketShare,
+            modified_date: todayDate,
+            modified_by: '',
+            created_date: todayDate,
+            created_by: ''
+          })),
+        })
+      );
+      console.log("payload 1", payload);
+
       setIsFinalSubmit(true);
       submitShareData();
       setNationalMSForcast(nationalForecastData);
@@ -129,7 +154,6 @@ const UtilizationAndMSData = () => {
     return <p className="text-center">No records found.</p>;
   }
 
-  // console.log("nationalForecastData", nationalForecastData);
 
   const handleDeleteTable = () => {
     if (tableCount > 2) {
@@ -153,7 +177,10 @@ const UtilizationAndMSData = () => {
     }
   }, []);
 
-  // console.log("Store options after sync:", useDealFormStore.getState().options);
+  useEffect(() => {
+    console.log("Updated table count:", tableCount);
+  }, [tableCount]);
+
 
 
   return (
@@ -164,9 +191,6 @@ const UtilizationAndMSData = () => {
       <MarketBasketTable
         initialGrowthData={masterMarketData}
         onBasketUpdate={(data) => {
-          setMarketData(data);
-          setMarketBasketRecords(data);
-          syncOptionsWithMarketBasket();
           updateMarketData(data);
         }}
         isFirstSubmit={isFirstSubmit}
@@ -193,11 +217,35 @@ const UtilizationAndMSData = () => {
                       maxLength={50}
                       required
                       value={option.optionDesc}
+                      onKeyDown={(e) => {
+                        const allowed = /^[a-zA-Z0-9 ]$/;
+                        if (
+                          e.key.length === 1 &&
+                          !allowed.test(e.key)
+                        ) {
+                          e.preventDefault();
+                          setShowSpecialCharWarning(true);
+                          setTimeout(() => setShowSpecialCharWarning(false), 2000);
+                        }
+                      }}
+                      onPaste={(e) => {
+                        const paste = e.clipboardData.getData("text");
+                        if (/[^a-zA-Z0-9 ]/.test(paste)) {
+                          e.preventDefault();
+                          setShowSpecialCharWarning(true);
+                          setTimeout(() => setShowSpecialCharWarning(false), 2000);
+                        }
+                      }}
                       onChange={(e) =>
                         updateOption(option.optionId, "optionDesc", e.target.value)
                       }
                       isInvalid={!option.optionDesc || option.optionDesc.trim() === ""}
                     />
+                    {showSpecialCharWarning && (
+                      <div style={{ color: "red", fontSize: "0.9rem", marginTop: "4px" }}>
+                        Special characters are not allowed.
+                      </div>
+                    )}
                     <Form.Control.Feedback type="invalid">
                       Option Description is required.
                     </Form.Control.Feedback>
