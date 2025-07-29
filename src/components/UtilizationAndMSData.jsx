@@ -7,6 +7,7 @@ import MarketBasketTable from "./MarketBasketTable";
 import MarketOptionTable from "./MarketOptionTable";
 import NationalMarketShareTable from "./NationalMarketShareTable";
 import ToastMessageSuccess from "./ToastMessageSuccess";
+import { convertQuarter } from "../utils/utils";
 
 const forcastData = {
   2023: 21,
@@ -18,6 +19,8 @@ const forcastData = {
   2029: 20,
   2030: 29,
 };
+
+const todayDate = new Date().toISOString().split('T')[0];
 
 const UtilizationAndMSData = () => {
   const {
@@ -31,6 +34,7 @@ const UtilizationAndMSData = () => {
     setNationalMSForcast,
     setMarketBasketRecords,
     syncOptionsWithMarketBasket,
+    lookBackPeriod
   } = useDealFormStore();
   const [marketData, setMarketData] = useState([]);
   const [isFirstSubmit, setIsFirstSubmit] = useState(false);
@@ -97,7 +101,7 @@ const UtilizationAndMSData = () => {
   });
 
   const handleSubmitShareData = () => {
-    console.log("options", options);
+    console.log("options 1", options);
     const hasEmptyShareData = options.some((opt) =>
       opt.optionData.some(
         (item) => String(item.marketShare || "").trim() === ""
@@ -116,6 +120,29 @@ const UtilizationAndMSData = () => {
     if (hasEmptyShareData) {
       alert("Some Market Share field is empty");
     } else {
+      const payload = options.map(optionItem => ({
+          options: optionItem.optionData.map((item) => ({
+            dealId: item.dealId,
+            account: item.account,
+            channel: item.channel,
+            period: convertQuarter(item.quarter),
+            lookback_period: lookBackPeriod,
+            brand: item.brand,
+            option: optionItem.optionId,
+            option_description: optionItem.optionDesc,
+            no_deal: optionItem.noDeal,
+            deal_market_trx: item.marketTrx,
+            total_market_basket: item.marketBasket,
+            deal_market_share: item.marketShare,
+            modified_date: todayDate,
+            modified_by: '',
+            created_date: todayDate,
+            created_by: ''
+          })),
+        })
+      );
+      console.log("payload 1", payload);
+
       setIsFinalSubmit(true);
       submitShareData();
       setNationalMSForcast(nationalForecastData);
