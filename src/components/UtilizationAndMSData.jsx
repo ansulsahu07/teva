@@ -8,7 +8,6 @@ import MarketOptionTable from "./MarketOptionTable";
 import NationalMarketShareTable from "./NationalMarketShareTable";
 import ToastMessageSuccess from "./ToastMessageSuccess";
 
-
 const forcastData = {
   2023: 21,
   2024: 25,
