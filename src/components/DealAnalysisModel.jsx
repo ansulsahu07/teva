@@ -6,17 +6,32 @@ import DealOptionForm from "./DealOptionForm";
 import DealAnalysisTable from "./DealAnalysisTable";
 import useAnalysisData from "../hooks/useAnalysisData";
 import { DEAL_ROUTES } from "../constants/routes";
-import wac_history from "../../data/fetch_wac_history.json";
+// import wac_history from "../../data/fetch_wac_history.json";
+import {
+  calculateWeightedAvgCOGS,
+  calculateWeightedAvgWAC,
+  convertQuarter,
+  getProductMix,
+} from "../utils/utils";
+import {
+  COGS_PER_UNIT,
+  DEMAND_UNIT_TRX,
+  WAC_HISTORY,
+} from "../constants/productForecast";
 
 const DealAnalysisModel = () => {
   const navigate = useNavigate();
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(0);
   const [selectedOptionData, setSelectedOptionData] = useState([]);
-  const [wacValue, setWacValue] = useState([]);
-  const [cogsValue, setCogsValue] = useState(1);
-  const [isSelectedWacCalculated, setIsSelectedWacCalculated] = useState(false);
-  const [isSelectedCogsCalculated, setIsSelectedCogsCalculated] = useState(false);
-  const [isSelectedProductMixCalculated, setIsSelectedProductMixCalculated] = useState(false);
+  // const [wacValue, setWacValue] = useState([]);
+  // const [cogsValue, setCogsValue] = useState(1);
+  // const [isSelectedWacCalculated, setIsSelectedWacCalculated] = useState(false);
+  // const [isSelectedCogsCalculated, setIsSelectedCogsCalculated] = useState(false);
+  // New
+  const [isProductMixCalculated, setIsProductMixCalculated] = useState(false);
+  const [productMix, setProductMix] = useState([]);
+  const [weightedAvgCalc, setWeightedAvgCalc] = useState([]);
+  const [weightedAvgCogs, setWeightedAvgCogs] = useState([]);
 
   const {
     dealId,
@@ -27,41 +42,24 @@ const DealAnalysisModel = () => {
     noDealOption,
     contractTermOptions,
     allOptionsSubmitted,
-    submittedMSData,
+    // submittedMSData,
   } = useAnalysisData();
 
   useEffect(() => {
     if (contractTermOptions.length > 0) {
       handleDealAnalysisData();
     }
-  }, [selectedOptionIndex,wacValue,cogsValue]);
+  }, [selectedOptionIndex]);
 
-  const handleCalculation = (field) => {
-    if (field === "productMix") {
-      setIsSelectedProductMixCalculated(true);
-      alert("Product Mix is clicked.");
-    } else if (field === "COGS") {
-      setIsSelectedCogsCalculated(true);
-      alert("COGS Calculation is clicked.");
-      setCogsValue(5);
-    } else if (field === "WAC") {
-      setIsSelectedWacCalculated(true);
-      alert("WAC Calculation is clicked.");
-      setWacValue(wac_history[0].wac);
-    }
-  };
 
   const handleDealAnalysisData = () => {
     const selected = dealOptions[selectedOptionIndex];
-    const existingData = submittedMSData[selected.optionId];
 
-    if (existingData) {
-      setSelectedOptionData(existingData);
-      return;
-    }
+    const optionTableData = selected.optionData.map((item, i) => {
+      const noDealMatch = noDealOption[0]?.optionData.find(
+        (qtr) => qtr.quarter === item.quarter
+      );
 
-    const optionTableData = selected.optionData.map((item,i) => {
-      const noDealMatch = noDealOption[0]?.optionData.find(qtr => qtr.quarter === item.quarter);
       return {
         dealId,
         brand,
@@ -74,10 +72,11 @@ const DealAnalysisModel = () => {
         accountTrxMktShareProj: item.marketShare,
         accountTrx: item.marketTrx,
         nmsMarketShareProj: item.forecast,
+        period: convertQuarter(item.quarter),
         nd_accountTrxMktShareProj: noDealMatch ? noDealMatch.marketShare : 0,
         nd_accountTrx: noDealMatch ? noDealMatch.marketTrx : 0,
         nd_NMSMktShareProj: noDealMatch ? item.forecast : 0,
-        wac: wacValue[i] || 0,
+        wac: "-",
         priceIncreaseAssumptions: 0,
         guaranteedRebateAdminPct: "",
         priceProtectionRebatePct: "",
@@ -88,7 +87,7 @@ const DealAnalysisModel = () => {
         royaltiesPct: 1,
         operatingCostVariablePct: 1,
         operatingCostFixedPct: 1,
-        cogs: cogsValue,
+        cogs: '-',
         nd_guaranteedRebateAdminPct: "",
         nd_priceProtectionRebatePct: "",
         nd_guaranteedRebateAfAmount: "-",
@@ -98,11 +97,50 @@ const DealAnalysisModel = () => {
         nd_royaltiesPct: 1,
         nd_operatingCostVariablePct: 1,
         nd_operatingCostFixedPct: 1,
-        nd_cogs: cogsValue,
+        nd_cogs: '-',
       };
     });
 
     setSelectedOptionData(optionTableData);
+  };
+
+  const handleProductMixCalc = () => {
+    const productMixData = getProductMix(DEMAND_UNIT_TRX);
+    console.log("productMixData", productMixData);
+    setProductMix(productMixData);
+    setIsProductMixCalculated(productMixData.length ? true : false);
+  };
+
+  const handleWac = () => {
+    const wtdAvgWac = calculateWeightedAvgWAC(WAC_HISTORY, productMix);
+    console.log("wtdAvgWac", wtdAvgWac);
+    const updatedOptionTableData = selectedOptionData.map((option) => {
+      const matched = wtdAvgWac.find((wa) => wa.period === option.period);
+
+      return {
+        ...option,
+        wac: matched ? matched.weighted_avg_calc : 0,
+      };
+    });
+    console.log("updatedOptionTableData", updatedOptionTableData);
+    setSelectedOptionData(updatedOptionTableData);
+    setWeightedAvgCalc(wtdAvgWac);
+  };
+
+  const handleCogs = () => {
+    const wtdAvgCogs = calculateWeightedAvgCOGS(productMix, COGS_PER_UNIT);
+    console.log("wtdAvgCogs", wtdAvgCogs);
+    const updatedOptionTableData = selectedOptionData.map((option) => {
+      const matched = wtdAvgCogs.find((wa) => wa.period === option.period);
+
+      return {
+        ...option,
+        cogs: matched ? matched.weighted_avg_cogs : 0,
+      };
+    });
+    console.log("updatedOptionTableData", updatedOptionTableData);
+    setSelectedOptionData(updatedOptionTableData);
+    setWeightedAvgCogs(wtdAvgCogs);
   };
 
   const handleNext = () => {
@@ -113,6 +151,7 @@ const DealAnalysisModel = () => {
     return <p className="text-center">No records found.</p>;
   }
 
+  console.log("selectedOptionData", selectedOptionData);
   return (
     <>
       <div className="deal-analysis-model">
@@ -126,19 +165,25 @@ const DealAnalysisModel = () => {
         </div>
       </div>
       <div className="text-center my-3">
-        <Button className="vi-btn-solid-magenta vi-btn-solid"
-        disabled={isSelectedProductMixCalculated}
-        onClick={() => handleCalculation("productMix")}>
+        <Button
+          className="vi-btn-solid-magenta vi-btn-solid"
+          disabled={isProductMixCalculated}
+          onClick={() => handleProductMixCalc()}
+        >
           PRODUCT MIX
         </Button>
-        <Button className="vi-btn-solid-magenta vi-btn-solid" 
-        disabled={isSelectedWacCalculated}
-        onClick={() => handleCalculation("WAC")}>
+        <Button
+          className="vi-btn-solid-magenta vi-btn-solid"
+          disabled={!isProductMixCalculated}
+          onClick={() => handleWac()}
+        >
           Weighted Avg Calc
         </Button>
-        <Button className="vi-btn-solid-magenta vi-btn-solid" 
-        disabled={isSelectedCogsCalculated}
-        onClick={() => handleCalculation("COGS")}>
+        <Button
+          className="vi-btn-solid-magenta vi-btn-solid"
+          disabled={!isProductMixCalculated}
+          onClick={() => handleCogs()}
+        >
           Weighted Avg COGS
         </Button>
       </div>
@@ -148,10 +193,17 @@ const DealAnalysisModel = () => {
       )}
 
       <div className="text-center my-3">
-        <Button className="vi-btn-solid-magenta vi-btn-solid" onClick={() => navigate(DEAL_ROUTES.UTILIZATIONANDMSDATA.PATH)}>
+        <Button
+          className="vi-btn-solid-magenta vi-btn-solid"
+          onClick={() => navigate(DEAL_ROUTES.UTILIZATIONANDMSDATA.PATH)}
+        >
           BACK
         </Button>
-        <Button className="vi-btn-solid-magenta vi-btn-solid" onClick={handleNext} disabled={!allOptionsSubmitted}>
+        <Button
+          className="vi-btn-solid-magenta vi-btn-solid"
+          onClick={handleNext}
+          disabled={!allOptionsSubmitted}
+        >
           NEXT
         </Button>
       </div>
