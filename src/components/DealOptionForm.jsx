@@ -6,6 +6,7 @@ import useAnalysisData from "../hooks/useAnalysisData";
 const DealOptionForm = ({ onOptionChange, valueType = "index" }) => {
     const [chooseOption, setChooseOption] = useState(0);
     const {
+      dealId,
       dealOptions,
       brand,
       account,
@@ -36,6 +37,11 @@ const DealOptionForm = ({ onOptionChange, valueType = "index" }) => {
   
     return (
       <>
+         <div className="row mb-2">
+          <div className="col-5 fw-bold text-end">Deal ID:</div>
+          <div className="col-7 text-start">{dealId}</div>
+        </div>
+
         <Form.Group as={Row} controlId="dealOptionSelect" className="mb-2">
           <Form.Label column sm={5} className="fw-bold text-end">
             Option:
@@ -47,6 +53,10 @@ const DealOptionForm = ({ onOptionChange, valueType = "index" }) => {
           </Col>
         </Form.Group>
   
+        <div className="row mb-2">
+          <div className="col-5 fw-bold text-end">Option ID:</div>
+          <div className="col-7 text-start">{dealOptions[chooseOption].optionId}</div>
+        </div>
         <div className="row mb-2">
           <div className="col-5 fw-bold text-end">Drug:</div>
           <div className="col-7 text-start">{brand}</div>
