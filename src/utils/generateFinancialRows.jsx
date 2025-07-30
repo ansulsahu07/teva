@@ -16,38 +16,40 @@ export const generateFinancialRows = (tableData, selectedDeal) => {
   rows.push({ cells: header2 });
 
   financialTableMetrics.forEach(field => {
-    let totalDeal = 0, totalNoDeal = 0;
+    let totalDeal = 0;
+    let totalNoDeal = 0;
+    let totalDiff = 0;
     const row = [field.label];
 
-    const yearData = yearKeys.map(year => {
-      const flatVal = tableData[year]?.[field.label];
-      if (flatVal !== undefined && typeof flatVal !== "object") {
-        const val = Number(flatVal) || 0;
-        return { flat: true, val };
-      }
-      const deal = Number(tableData[year]?.Deal?.[field.label]) || 0;
-      const noDeal = Number(selectedDeal?.["No Deal"]?.[year]?.[field.label]) || 0;
-      const diff = deal - noDeal;
-      totalDeal += deal;
-      totalNoDeal += noDeal;
-      return { flat: false, deal, noDeal, diff };
-    });
-
-    yearData.forEach(d => {
-      if (d.flat) {
-        row.push("",d.val, "");
+    const field_name = field.name
+      .toLowerCase()
+      .replace(/_+/g, "_")        // Collapse multiple _
+      .replace(/^_+|_+$/g, "");   // Trim _ from start/end
+    console.log(field_name);
+    yearKeys.forEach(year => {
+      if (field_name === "nms" || field_name === "value_for_each_ms" || field_name === "break_even_rebate_vs_no_deal" || field_name === "break_even_addtl_rebate_vs_no_deal" || field_name === "break_even_share_vs_no_deal") {
+        // Special handling for these fields
+        row.push("", Number(tableData[year][field_name]), "");
+        totalDiff+= Number(tableData[year][field_name]) || 0;
       } else {
-        row.push(d.deal, d.noDeal, d.diff);
+        const yearData = tableData[year] || {};
+        const deal = Number(yearData[field_name]) || 0;
+        const noDeal = Number(yearData[`nd_${field_name}`]) || 0;
+        const diff = Number(yearData[`diff_${field_name}`]) || (deal - noDeal);
+
+        row.push(deal, noDeal, diff);
+
+        totalDeal += deal;
+        totalNoDeal += noDeal;
+        totalDiff += diff;
       }
     });
-
-    if (yearData[0].flat) {
-      const totalFlat = yearData.reduce((acc, d) => acc + d.val, 0);
-      row.push("",totalFlat, "");
-    } else {
-      row.push(totalDeal, totalNoDeal, totalDeal - totalNoDeal);
+    if (totalDeal==0 && totalNoDeal==0 && totalDiff!=0) {
+      row.push("", totalDiff,"");
     }
-
+    else{
+    row.push(totalDeal, totalNoDeal, totalDiff);
+    }
     rows.push({ cells: row, isSection: field.isSection });
   });
 
