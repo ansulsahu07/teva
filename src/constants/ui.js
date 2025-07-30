@@ -46,41 +46,32 @@ export const API_ENDPOINT = {
   insertDealAnalysisData: '/insert-deal-analysis-data'
 }
 
-export const financialTableMetrics= [
-  { label: "Deal Financials", isSection: true },
-
-  { label: "Gross Sales", isSection: true },
-  "Rebates/Admin Fees/Price Protection",
-  "Purchase Discounts",
-  "IRA",
-
-  { label: "Net Sales", isSection: true },
-  "Cost of Goods Sold",
-  "Royalties",
-
-  { label: "Gross Profit", isSection: true },
-  "Operating Cost (Variable)",
-  "Operating Cost (Fixed)",
-
-  { label: "Gross Profit less Operating Cost", isSection: true },
-
-  { label: "Annual Rx", isSection: true },
-  "Teva GM%",
-  "Gross Profit per Rx",
-  "Operating Cost per Rx",
-
-  { label: "Gross Profit less Operating Cost per Rx", isSection: true },
-
-  "Rebates/Admin Fees/Price Protection %",
-  { label: "NMS", isSection: true },
-  "Annual Average Market Share",
-  "Exit Market Share",
-  "+/- NMS",
-
-  { label: "Gross Sales $ Value for Each Rebate %", isSection: true },
-  { label: "$$$ Value for Each MS %", isSection: true },
-
-  "Break-Even Rebate vs No Deal",
-  "Break-Even Addt'l Rebate vs No Deal",
-  "Break-Even Share vs No Deal"
+export const financialTableMetrics = [
+      { label: "Gross Sales", isSection: true },
+      { label: "Rebates/Admin Fees/Price" },
+      { label: "Purchase Discounts" },
+      { label: "IRA" },
+      { label: "Net Sales", isSection: true },
+      { label: "Cost of Goods Sold" },
+      { label: "Royalties" },
+      { label: "Gross Profit", isSection: true },
+      { label: "Operating Cost (Variable)" },
+      { label: "Operating Cost (Fixed)" },
+      { label: "Gross Profit less Operating Cost", isSection: true },
+      { label: "Annual Rx", isSection: true },
+      { label: "Teva GM%" },
+      { label: "Gross Profit per Rx" },
+      { label: "Operating Cost per Rx" },
+      { label: "Gross Profit less Operating Cost per Rx", isSection: true },
+      { label: "NMS", isSection: true },
+      { label: "Annual Average Market Share" },
+      { label: "Exit Market Share" },
+      { label: "+/- NMS" },
+      { label: "Gross Sales $ Value for Each Rebate %", isSection: true },
+      { label: "$$$ Value for Each MS %", isSection: true },
+      { label: "Break-Even Rebate vs No Deal" },
+      { label: "Break-Even Addt'l Rebate vs No Deal" },
+      { label: "Break-Even Share vs No Deal" }
 ];
+
+

@@ -137,7 +137,7 @@
 
 
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DEAL_ROUTES } from "../constants/routes";
 import { FinancialTable } from "../components/FinancialTable";
 import DealOptionForm from "./DealOptionForm";
@@ -164,7 +164,7 @@ const FinancialData = () => {
       </div>
 
       {selectedOptionId && (
-        <FinancialTable optionId={selectedOptionId} dealId={123} />
+        <FinancialTable optionId={selectedOptionId} dealId={123} defaultToFirst={true} />
       )}
     </div>
   );
